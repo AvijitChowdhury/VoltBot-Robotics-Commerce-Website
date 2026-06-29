@@ -17,6 +17,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
+import { Route as ApiPublicCourierStatusSyncRouteImport } from './routes/api/public/courier-status-sync'
 import { Route as ApiPublicUddoktapayWebhookRouteImport } from './routes/api/public/uddoktapay.webhook'
 
 const ProductsRoute = ProductsRouteImport.update({
@@ -59,6 +60,12 @@ const ProductSlugRoute = ProductSlugRouteImport.update({
   path: '/product/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicCourierStatusSyncRoute =
+  ApiPublicCourierStatusSyncRouteImport.update({
+    id: '/api/public/courier-status-sync',
+    path: '/api/public/courier-status-sync',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicUddoktapayWebhookRoute =
   ApiPublicUddoktapayWebhookRouteImport.update({
     id: '/api/public/uddoktapay/webhook',
@@ -75,6 +82,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/products': typeof ProductsRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/api/public/courier-status-sync': typeof ApiPublicCourierStatusSyncRoute
   '/api/public/uddoktapay/webhook': typeof ApiPublicUddoktapayWebhookRoute
 }
 export interface FileRoutesByTo {
@@ -86,6 +94,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/products': typeof ProductsRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/api/public/courier-status-sync': typeof ApiPublicCourierStatusSyncRoute
   '/api/public/uddoktapay/webhook': typeof ApiPublicUddoktapayWebhookRoute
 }
 export interface FileRoutesById {
@@ -98,6 +107,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/products': typeof ProductsRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/api/public/courier-status-sync': typeof ApiPublicCourierStatusSyncRoute
   '/api/public/uddoktapay/webhook': typeof ApiPublicUddoktapayWebhookRoute
 }
 export interface FileRouteTypes {
@@ -111,6 +121,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/products'
     | '/product/$slug'
+    | '/api/public/courier-status-sync'
     | '/api/public/uddoktapay/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -122,6 +133,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/products'
     | '/product/$slug'
+    | '/api/public/courier-status-sync'
     | '/api/public/uddoktapay/webhook'
   id:
     | '__root__'
@@ -133,6 +145,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/products'
     | '/product/$slug'
+    | '/api/public/courier-status-sync'
     | '/api/public/uddoktapay/webhook'
   fileRoutesById: FileRoutesById
 }
@@ -145,6 +158,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ProductsRoute: typeof ProductsRoute
   ProductSlugRoute: typeof ProductSlugRoute
+  ApiPublicCourierStatusSyncRoute: typeof ApiPublicCourierStatusSyncRoute
   ApiPublicUddoktapayWebhookRoute: typeof ApiPublicUddoktapayWebhookRoute
 }
 
@@ -206,6 +220,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/courier-status-sync': {
+      id: '/api/public/courier-status-sync'
+      path: '/api/public/courier-status-sync'
+      fullPath: '/api/public/courier-status-sync'
+      preLoaderRoute: typeof ApiPublicCourierStatusSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/uddoktapay/webhook': {
       id: '/api/public/uddoktapay/webhook'
       path: '/api/public/uddoktapay/webhook'
@@ -225,6 +246,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ProductsRoute: ProductsRoute,
   ProductSlugRoute: ProductSlugRoute,
+  ApiPublicCourierStatusSyncRoute: ApiPublicCourierStatusSyncRoute,
   ApiPublicUddoktapayWebhookRoute: ApiPublicUddoktapayWebhookRoute,
 }
 export const routeTree = rootRouteImport
