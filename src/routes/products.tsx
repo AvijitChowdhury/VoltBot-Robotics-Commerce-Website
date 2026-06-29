@@ -9,12 +9,12 @@ import { z } from "zod";
 import { Search, SlidersHorizontal } from "lucide-react";
 
 const searchSchema = z.object({
-  category: fallback(z.string().optional(), undefined),
-  q: fallback(z.string().optional(), undefined),
-  sort: fallback(z.enum(["newest", "oldest", "price-asc", "price-desc", "rating"]), "newest").default("newest"),
-  minPrice: fallback(z.number().optional(), undefined),
-  maxPrice: fallback(z.number().optional(), undefined),
-  page: fallback(z.number().int().min(1), 1).default(1),
+  category: z.string().optional().catch(undefined),
+  q: z.string().optional().catch(undefined),
+  sort: z.enum(["newest", "oldest", "price-asc", "price-desc", "rating"]).catch("newest").default("newest"),
+  minPrice: z.number().optional().catch(undefined),
+  maxPrice: z.number().optional().catch(undefined),
+  page: z.number().int().min(1).catch(1).default(1),
 });
 
 const listOpts = (deps: z.infer<typeof searchSchema>) =>
