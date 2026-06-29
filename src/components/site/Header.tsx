@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { Search, ShoppingCart, User, Menu, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useCart } from "@/contexts/CartContext";
 
 const navLinks = [
   { to: "/", label: "Home" },
