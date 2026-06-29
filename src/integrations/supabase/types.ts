@@ -44,6 +44,24 @@ export type Database = {
         }
         Relationships: []
       }
+      app_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       banners: {
         Row: {
           created_at: string
@@ -83,6 +101,39 @@ export type Database = {
           subtitle?: string | null
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      brands: {
+        Row: {
+          created_at: string
+          description: string | null
+          display_order: number
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name?: string
+          slug?: string
         }
         Relationships: []
       }
@@ -225,6 +276,110 @@ export type Database = {
         }
         Relationships: []
       }
+      coupons: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_active: boolean
+          max_discount: number | null
+          min_order_amount: number
+          per_user_limit: number | null
+          starts_at: string | null
+          type: Database["public"]["Enums"]["coupon_type"]
+          updated_at: string
+          usage_limit: number | null
+          used_count: number
+          value: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_discount?: number | null
+          min_order_amount?: number
+          per_user_limit?: number | null
+          starts_at?: string | null
+          type?: Database["public"]["Enums"]["coupon_type"]
+          updated_at?: string
+          usage_limit?: number | null
+          used_count?: number
+          value: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean
+          max_discount?: number | null
+          min_order_amount?: number
+          per_user_limit?: number | null
+          starts_at?: string | null
+          type?: Database["public"]["Enums"]["coupon_type"]
+          updated_at?: string
+          usage_limit?: number | null
+          used_count?: number
+          value?: number
+        }
+        Relationships: []
+      }
+      courier_shipments: {
+        Row: {
+          cod_amount: number | null
+          consignment_id: string | null
+          created_at: string
+          id: string
+          invoice: string | null
+          order_id: string | null
+          provider: string
+          request_payload: Json | null
+          response_payload: Json | null
+          status: string | null
+          tracking_code: string | null
+          updated_at: string
+        }
+        Insert: {
+          cod_amount?: number | null
+          consignment_id?: string | null
+          created_at?: string
+          id?: string
+          invoice?: string | null
+          order_id?: string | null
+          provider?: string
+          request_payload?: Json | null
+          response_payload?: Json | null
+          status?: string | null
+          tracking_code?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cod_amount?: number | null
+          consignment_id?: string | null
+          created_at?: string
+          id?: string
+          invoice?: string | null
+          order_id?: string | null
+          provider?: string
+          request_payload?: Json | null
+          response_payload?: Json | null
+          status?: string | null
+          tracking_code?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "courier_shipments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       delivery_zones: {
         Row: {
           created_at: string
@@ -252,6 +407,42 @@ export type Database = {
           is_active?: boolean
           name?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      fraud_checks: {
+        Row: {
+          cancelled_orders: number
+          checked_at: string
+          id: string
+          phone: string
+          raw: Json | null
+          risk_level: string
+          success_orders: number
+          success_rate: number
+          total_orders: number
+        }
+        Insert: {
+          cancelled_orders?: number
+          checked_at?: string
+          id?: string
+          phone: string
+          raw?: Json | null
+          risk_level?: string
+          success_orders?: number
+          success_rate?: number
+          total_orders?: number
+        }
+        Update: {
+          cancelled_orders?: number
+          checked_at?: string
+          id?: string
+          phone?: string
+          raw?: Json | null
+          risk_level?: string
+          success_orders?: number
+          success_rate?: number
+          total_orders?: number
         }
         Relationships: []
       }
@@ -388,12 +579,22 @@ export type Database = {
         Row: {
           amount_paid: number
           city: string | null
+          coupon_code: string | null
+          courier_consignment_id: string | null
+          courier_status: string | null
+          courier_synced_at: string | null
+          courier_tracking_code: string | null
           created_at: string
           customer_email: string
           customer_name: string
           customer_phone: string
+          deleted_at: string | null
           delivery_fee: number
           delivery_zone_id: string | null
+          discount: number
+          fraud_checked_at: string | null
+          fraud_data: Json | null
+          fraud_score: number | null
           guest_email: string | null
           id: string
           notes: string | null
@@ -413,12 +614,22 @@ export type Database = {
         Insert: {
           amount_paid?: number
           city?: string | null
+          coupon_code?: string | null
+          courier_consignment_id?: string | null
+          courier_status?: string | null
+          courier_synced_at?: string | null
+          courier_tracking_code?: string | null
           created_at?: string
           customer_email: string
           customer_name: string
           customer_phone: string
+          deleted_at?: string | null
           delivery_fee?: number
           delivery_zone_id?: string | null
+          discount?: number
+          fraud_checked_at?: string | null
+          fraud_data?: Json | null
+          fraud_score?: number | null
           guest_email?: string | null
           id?: string
           notes?: string | null
@@ -438,12 +649,22 @@ export type Database = {
         Update: {
           amount_paid?: number
           city?: string | null
+          coupon_code?: string | null
+          courier_consignment_id?: string | null
+          courier_status?: string | null
+          courier_synced_at?: string | null
+          courier_tracking_code?: string | null
           created_at?: string
           customer_email?: string
           customer_name?: string
           customer_phone?: string
+          deleted_at?: string | null
           delivery_fee?: number
           delivery_zone_id?: string | null
+          discount?: number
+          fraud_checked_at?: string | null
+          fraud_data?: Json | null
+          fraud_score?: number | null
           guest_email?: string | null
           id?: string
           notes?: string | null
@@ -466,6 +687,35 @@ export type Database = {
             columns: ["delivery_zone_id"]
             isOneToOne: false
             referencedRelation: "delivery_zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_attributes: {
+        Row: {
+          display_order: number
+          id: string
+          name: string
+          product_id: string
+        }
+        Insert: {
+          display_order?: number
+          id?: string
+          name: string
+          product_id: string
+        }
+        Update: {
+          display_order?: number
+          id?: string
+          name?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_attributes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]
@@ -502,20 +752,103 @@ export type Database = {
           },
         ]
       }
+      product_tags: {
+        Row: {
+          product_id: string
+          tag_id: string
+        }
+        Insert: {
+          product_id: string
+          tag_id: string
+        }
+        Update: {
+          product_id?: string
+          tag_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_tags_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_variants: {
+        Row: {
+          attributes: Json
+          compare_at_price: number | null
+          created_at: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          price: number
+          product_id: string
+          sku: string | null
+          stock: number
+        }
+        Insert: {
+          attributes?: Json
+          compare_at_price?: number | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          price: number
+          product_id: string
+          sku?: string | null
+          stock?: number
+        }
+        Update: {
+          attributes?: Json
+          compare_at_price?: number | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          price?: number
+          product_id?: string
+          sku?: string | null
+          stock?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_variants_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
+          brand_id: string | null
           category_id: string | null
           compare_at_price: number | null
           created_at: string
+          custom_shipping_cost: number | null
           description: string | null
           id: string
           image_url: string | null
           is_active: boolean
           is_featured: boolean
+          long_description: string | null
           name: string
           price: number
+          product_type: Database["public"]["Enums"]["product_type"]
           rating: number
+          related_product_ids: string[]
           reviews_count: number
+          short_description: string | null
           sku: string | null
           slug: string
           specs: Json | null
@@ -523,18 +856,24 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          brand_id?: string | null
           category_id?: string | null
           compare_at_price?: number | null
           created_at?: string
+          custom_shipping_cost?: number | null
           description?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
           is_featured?: boolean
+          long_description?: string | null
           name: string
           price?: number
+          product_type?: Database["public"]["Enums"]["product_type"]
           rating?: number
+          related_product_ids?: string[]
           reviews_count?: number
+          short_description?: string | null
           sku?: string | null
           slug: string
           specs?: Json | null
@@ -542,18 +881,24 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          brand_id?: string | null
           category_id?: string | null
           compare_at_price?: number | null
           created_at?: string
+          custom_shipping_cost?: number | null
           description?: string | null
           id?: string
           image_url?: string | null
           is_active?: boolean
           is_featured?: boolean
+          long_description?: string | null
           name?: string
           price?: number
+          product_type?: Database["public"]["Enums"]["product_type"]
           rating?: number
+          related_product_ids?: string[]
           reviews_count?: number
+          short_description?: string | null
           sku?: string | null
           slug?: string
           specs?: Json | null
@@ -561,6 +906,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_category_id_fkey"
             columns: ["category_id"]
@@ -606,6 +958,8 @@ export type Database = {
           id: string
           is_approved: boolean
           is_featured: boolean
+          is_verified_purchase: boolean
+          order_id: string | null
           product_id: string | null
           rating: number
           user_id: string | null
@@ -618,6 +972,8 @@ export type Database = {
           id?: string
           is_approved?: boolean
           is_featured?: boolean
+          is_verified_purchase?: boolean
+          order_id?: string | null
           product_id?: string | null
           rating: number
           user_id?: string | null
@@ -630,11 +986,20 @@ export type Database = {
           id?: string
           is_approved?: boolean
           is_featured?: boolean
+          is_verified_purchase?: boolean
+          order_id?: string | null
           product_id?: string | null
           rating?: number
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "reviews_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "reviews_product_id_fkey"
             columns: ["product_id"]
@@ -643,6 +1008,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      tags: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -677,9 +1063,11 @@ export type Database = {
         }
         Returns: boolean
       }
+      purge_old_trashed_orders: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "customer"
+      coupon_type: "percentage" | "fixed"
       order_status:
         | "pending"
         | "processing"
@@ -688,6 +1076,7 @@ export type Database = {
         | "cancelled"
       payment_method: "cod" | "uddoktapay" | "partial"
       payment_status: "unpaid" | "paid" | "partial" | "failed" | "refunded"
+      product_type: "simple" | "variable"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -816,6 +1205,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "customer"],
+      coupon_type: ["percentage", "fixed"],
       order_status: [
         "pending",
         "processing",
@@ -825,6 +1215,7 @@ export const Constants = {
       ],
       payment_method: ["cod", "uddoktapay", "partial"],
       payment_status: ["unpaid", "paid", "partial", "failed", "refunded"],
+      product_type: ["simple", "variable"],
     },
   },
 } as const
