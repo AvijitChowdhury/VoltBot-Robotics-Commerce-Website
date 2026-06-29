@@ -12,12 +12,16 @@ const navLinks = [
 
 export function Header() {
   const [scrolled, setScrolled] = useState(false);
+  const [q, setQ] = useState("");
+  const navigate = useNavigate();
+  const { count } = useCart();
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
 
   return (
     <header
