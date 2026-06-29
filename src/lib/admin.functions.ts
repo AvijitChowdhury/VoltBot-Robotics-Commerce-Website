@@ -79,7 +79,7 @@ export const listOrders = createServerFn({ method: "GET" })
   .handler(async ({ context, data }) => {
     await assertAdmin(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    let q = supabaseAdmin.from("orders").select("*, order_items(id,product_name,quantity,unit_price)").order("created_at", { ascending: false }).limit(100);
+    let q = supabaseAdmin.from("orders").select("*, order_items(id,product_name,quantity,unit_price)").is("deleted_at", null).order("created_at", { ascending: false }).limit(200);
     if (data.status && data.status !== "all") q = q.eq("status", data.status as any);
     if (data.q) q = q.or(`order_number.ilike.%${data.q}%,customer_name.ilike.%${data.q}%,customer_phone.ilike.%${data.q}%`);
     const { data: rows, error } = await q;
