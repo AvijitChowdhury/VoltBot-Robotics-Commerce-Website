@@ -94,9 +94,12 @@ function AdminPage() {
           {([
             ["dashboard", "Dashboard", LayoutDashboard],
             ["orders", "Orders", ShoppingBag],
+            ["trash", "Trash", Trash2],
             ["incomplete", "Incomplete & Recovery", AlertCircle],
             ["products", "Products", Package],
+            ["coupons", "Coupons", Tag],
             ["chat", "Live Chat", MessageCircle],
+            ["settings", "Settings", Settings],
           ] as const).map(([k, label, Icon]) => (
             <button key={k} onClick={() => setTab(k)} className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${tab === k ? "bg-primary text-primary-foreground shadow-glow" : "text-muted-foreground hover:text-foreground"}`}>
               <Icon className="h-4 w-4" /> {label}
@@ -107,9 +110,12 @@ function AdminPage() {
         <div className="mt-6">
           {tab === "dashboard" && <DashboardTab />}
           {tab === "orders" && <OrdersTab />}
+          {tab === "trash" && <TrashTab />}
           {tab === "incomplete" && <IncompleteTab />}
           {tab === "products" && <ProductsTab />}
+          {tab === "coupons" && <CouponsTab />}
           {tab === "chat" && <ChatInboxTab />}
+          {tab === "settings" && <SettingsTab />}
         </div>
       </main>
       <Footer />
