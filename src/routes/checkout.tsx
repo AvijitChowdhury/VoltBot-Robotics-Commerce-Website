@@ -5,6 +5,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useRef, useState } from "react";
 import { getDeliveryZones, saveIncompleteOrder, createOrder } from "@/lib/storefront.functions";
+import { createUddoktaPayCharge } from "@/lib/payments.functions";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, Loader2 } from "lucide-react";
@@ -63,6 +64,7 @@ function CheckoutPage() {
   }
 
   const createFn = useServerFn(createOrder);
+  const chargeFn = useServerFn(createUddoktaPayCharge);
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (lines.length === 0) return;
@@ -77,6 +79,14 @@ function CheckoutPage() {
         payment_method: paymentMethod,
       } });
       if (!res.ok) throw new Error(res.error);
+      // For online or partial payments, redirect to UddoktaPay
+      if (paymentMethod !== "cod") {
+        const charge = await chargeFn({ data: { order_id: res.order_id, mode: paymentMethod === "partial" ? "partial_delivery" : "full" } });
+        if (!charge.ok) throw new Error(charge.error);
+        clear();
+        window.location.href = charge.payment_url;
+        return;
+      }
       setSuccess({ order_number: res.order_number });
       clear();
     } catch (e: any) { setErr(e.message ?? "Failed to place order"); }
