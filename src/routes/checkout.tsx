@@ -30,11 +30,15 @@ function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [success, setSuccess] = useState<{ order_number: string } | null>(null);
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [couponErr, setCouponErr] = useState<string | null>(null);
 
   const zonesQ = useQuery({ queryKey: ["delivery-zones"], queryFn: () => getDeliveryZones() });
   const zone = zonesQ.data?.find((z) => z.id === form.delivery_zone_id);
   const deliveryFee = Number(zone?.fee ?? 0);
-  const total = subtotal + deliveryFee;
+  const discount = coupon?.discount ?? 0;
+  const total = subtotal + deliveryFee - discount;
 
   useEffect(() => {
     if (user) setForm((f) => ({ ...f, customer_email: f.customer_email || user.email || "" }));
