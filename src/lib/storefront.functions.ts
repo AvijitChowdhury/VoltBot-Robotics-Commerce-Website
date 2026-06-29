@@ -118,7 +118,7 @@ export const createOrder = createServerFn({ method: "POST" })
     customer_name: string; customer_email: string; customer_phone: string;
     shipping_address: string; city: string; delivery_zone_id: string;
     cart: CartLine[]; notes?: string;
-    payment_method: "cod" | "online" | "partial";
+    payment_method: "cod" | "uddoktapay" | "partial";
   }) => d)
   .handler(async ({ data }) => {
     const sb = publicClient();
@@ -150,7 +150,7 @@ export const createOrder = createServerFn({ method: "POST" })
       total,
       status: "pending",
       payment_method: data.payment_method,
-      payment_status: data.payment_method === "cod" ? "pending" : "pending",
+      payment_status: "unpaid",
       amount_paid: 0,
       notes: data.notes ?? null,
       recovered_from_incomplete,
