@@ -119,6 +119,7 @@ export const createOrder = createServerFn({ method: "POST" })
     shipping_address: string; city: string; delivery_zone_id: string;
     cart: CartLine[]; notes?: string;
     payment_method: "cod" | "uddoktapay" | "partial";
+    coupon_code?: string | null;
   }) => d)
   .handler(async ({ data }) => {
     const sb = publicClient();
@@ -126,7 +127,27 @@ export const createOrder = createServerFn({ method: "POST" })
     if (!zone.data) return { ok: false as const, error: "Invalid delivery zone" };
     const subtotal = data.cart.reduce((s, l) => s + Number(l.price) * l.quantity, 0);
     const delivery_fee = Number(zone.data.fee);
-    const total = subtotal + delivery_fee;
+
+    // Coupon
+    let discount = 0;
+    let appliedCoupon: string | null = null;
+    if (data.coupon_code) {
+      const code = data.coupon_code.trim().toUpperCase();
+      const { data: c } = await sb.from("coupons").select("*").ilike("code", code).maybeSingle();
+      const now = new Date();
+      if (c && c.is_active &&
+        (!c.starts_at || new Date(c.starts_at) <= now) &&
+        (!c.expires_at || new Date(c.expires_at) >= now) &&
+        (c.usage_limit == null || c.used_count < c.usage_limit) &&
+        Number(c.min_order_amount) <= subtotal) {
+        let d = c.type === "percentage" ? (subtotal * Number(c.value)) / 100 : Number(c.value);
+        if (c.max_discount != null) d = Math.min(d, Number(c.max_discount));
+        discount = Math.min(d, subtotal);
+        appliedCoupon = c.code;
+      }
+    }
+
+    const total = subtotal + delivery_fee - discount;
     const order_number = "VB-" + Date.now().toString(36).toUpperCase() + "-" + Math.random().toString(36).slice(2, 6).toUpperCase();
 
     let recovered_from_incomplete: string | null = null;
@@ -145,33 +166,34 @@ export const createOrder = createServerFn({ method: "POST" })
       shipping_address: data.shipping_address,
       city: data.city,
       delivery_zone_id: data.delivery_zone_id,
-      delivery_fee,
-      subtotal,
-      total,
+      delivery_fee, subtotal, total, discount,
+      coupon_code: appliedCoupon,
       status: "pending",
       payment_method: data.payment_method,
       payment_status: "unpaid",
       amount_paid: 0,
       notes: data.notes ?? null,
       recovered_from_incomplete,
-    }).select("id,order_number").single();
+    } as any).select("id,order_number").single();
 
     if (error || !order) return { ok: false as const, error: error?.message ?? "Failed to create order" };
 
     const items = data.cart.map((l) => ({
-      order_id: order.id,
-      product_id: l.product_id,
-      product_name: l.name,
-      product_image: l.image_url,
-      unit_price: l.price,
-      quantity: l.quantity,
-      subtotal: Number(l.price) * l.quantity,
+      order_id: order.id, product_id: l.product_id, product_name: l.name, product_image: l.image_url,
+      unit_price: l.price, quantity: l.quantity, subtotal: Number(l.price) * l.quantity,
     }));
     await sb.from("order_items").insert(items);
+
+    if (appliedCoupon) {
+      await sb.rpc as any;
+      // Increment coupon used_count (best-effort)
+      const { data: c } = await sb.from("coupons").select("id,used_count").eq("code", appliedCoupon).maybeSingle();
+      if (c) await sb.from("coupons").update({ used_count: (c.used_count ?? 0) + 1 } as any).eq("id", c.id);
+    }
 
     if (recovered_from_incomplete) {
       await sb.from("incomplete_orders").update({ is_converted: true, converted_order_id: order.id, converted_at: new Date().toISOString() }).eq("id", recovered_from_incomplete);
     }
 
-    return { ok: true as const, order_id: order.id, order_number: order.order_number };
+    return { ok: true as const, order_id: order.id, order_number: order.order_number, discount };
   });
