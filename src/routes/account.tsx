@@ -91,6 +91,8 @@ function AccountPage() {
             </div>
           )}
         </section>
+
+        <ReviewableItems userId={user.id} />
       </main>
       <Footer />
     </div>
