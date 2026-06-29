@@ -17,6 +17,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
+import { Route as ApiPublicUddoktapayWebhookRouteImport } from './routes/api/public/uddoktapay.webhook'
 
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
@@ -58,6 +59,12 @@ const ProductSlugRoute = ProductSlugRouteImport.update({
   path: '/product/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicUddoktapayWebhookRoute =
+  ApiPublicUddoktapayWebhookRouteImport.update({
+    id: '/api/public/uddoktapay/webhook',
+    path: '/api/public/uddoktapay/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/products': typeof ProductsRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/api/public/uddoktapay/webhook': typeof ApiPublicUddoktapayWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -78,6 +86,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/products': typeof ProductsRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/api/public/uddoktapay/webhook': typeof ApiPublicUddoktapayWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -89,6 +98,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/products': typeof ProductsRoute
   '/product/$slug': typeof ProductSlugRoute
+  '/api/public/uddoktapay/webhook': typeof ApiPublicUddoktapayWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/products'
     | '/product/$slug'
+    | '/api/public/uddoktapay/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/products'
     | '/product/$slug'
+    | '/api/public/uddoktapay/webhook'
   id:
     | '__root__'
     | '/'
@@ -121,6 +133,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/products'
     | '/product/$slug'
+    | '/api/public/uddoktapay/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -132,6 +145,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ProductsRoute: typeof ProductsRoute
   ProductSlugRoute: typeof ProductSlugRoute
+  ApiPublicUddoktapayWebhookRoute: typeof ApiPublicUddoktapayWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -192,6 +206,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/uddoktapay/webhook': {
+      id: '/api/public/uddoktapay/webhook'
+      path: '/api/public/uddoktapay/webhook'
+      fullPath: '/api/public/uddoktapay/webhook'
+      preLoaderRoute: typeof ApiPublicUddoktapayWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -204,6 +225,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ProductsRoute: ProductsRoute,
   ProductSlugRoute: ProductSlugRoute,
+  ApiPublicUddoktapayWebhookRoute: ApiPublicUddoktapayWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
