@@ -5,10 +5,11 @@ import { useCart } from "@/contexts/CartContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useRef, useState } from "react";
 import { getDeliveryZones, saveIncompleteOrder, createOrder } from "@/lib/storefront.functions";
+import { validateCoupon } from "@/lib/coupons.functions";
 import { createUddoktaPayCharge } from "@/lib/payments.functions";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2, Tag } from "lucide-react";
 
 export const Route = createFileRoute("/checkout")({
   head: () => ({ meta: [{ title: "Checkout — VoltBot" }] }),
