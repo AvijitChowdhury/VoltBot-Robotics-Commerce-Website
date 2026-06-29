@@ -82,6 +82,7 @@ function CheckoutPage() {
         ...form,
         cart: lines.map((l) => ({ product_id: l.product_id, name: l.name, price: l.price, quantity: l.quantity, image_url: l.image_url })),
         payment_method: paymentMethod,
+        coupon_code: coupon?.code ?? null,
       } });
       if (!res.ok) throw new Error(res.error);
       // For online or partial payments, redirect to UddoktaPay
