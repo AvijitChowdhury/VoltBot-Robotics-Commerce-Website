@@ -55,7 +55,7 @@ export const upsertCoupon = createServerFn({ method: "POST" })
     const payload = { ...data, code: data.code.trim().toUpperCase() };
     if (data.id) {
       const { id, ...patch } = payload;
-      const { error } = await supabaseAdmin.from("coupons").update(patch as any).eq("id", id);
+      const { error } = await supabaseAdmin.from("coupons").update(patch as any).eq("id", id!);
       if (error) return { ok: false, error: error.message };
     } else {
       const { error } = await supabaseAdmin.from("coupons").insert(payload as any);
