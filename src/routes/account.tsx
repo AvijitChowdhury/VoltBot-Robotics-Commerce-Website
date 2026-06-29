@@ -128,3 +128,95 @@ function OrderRow({ order: o }: { order: Order }) {
     </tr>
   );
 }
+
+type Reviewable = { order_id: string; product_id: string; product_name: string; product_image: string | null; order_number: string };
+
+function ReviewableItems({ userId }: { userId: string }) {
+  const [items, setItems] = useState<Reviewable[] | null>(null);
+
+  async function load() {
+    // Fetch delivered/shipped order items that the user hasn't reviewed yet
+    const { data: orders } = await supabase
+      .from("orders")
+      .select("id,order_number,status,order_items(product_id,product_name,product_image)")
+      .eq("user_id", userId)
+      .in("status", ["delivered", "shipped"]);
+
+    const all: Reviewable[] = [];
+    (orders ?? []).forEach((o: any) => {
+      (o.order_items ?? []).forEach((i: any) => {
+        if (i.product_id) all.push({ order_id: o.id, order_number: o.order_number, product_id: i.product_id, product_name: i.product_name, product_image: i.product_image });
+      });
+    });
+
+    const { data: existing } = await supabase.from("reviews").select("product_id").eq("user_id", userId);
+    const reviewed = new Set((existing ?? []).map((r: any) => r.product_id));
+    setItems(all.filter(x => !reviewed.has(x.product_id)));
+  }
+
+  useEffect(() => { load(); }, [userId]);
+
+  if (!items || items.length === 0) return null;
+  return (
+    <section className="mt-10">
+      <h2 className="font-display text-xl font-bold flex items-center gap-2"><Star className="h-5 w-5 text-warning" /> Write a review</h2>
+      <p className="mt-1 text-sm text-muted-foreground">Help other shoppers — leave a review for products you've received.</p>
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        {items.map((it) => (
+          <ReviewForm key={it.product_id + it.order_id} item={it} onDone={load} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ReviewForm({ item, onDone }: { item: Reviewable; onDone: () => void }) {
+  const { user } = useAuth();
+  const [rating, setRating] = useState(5);
+  const [comment, setComment] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function submit() {
+    if (!user || !comment.trim()) { setErr("Write a short comment"); return; }
+    setBusy(true); setErr(null);
+    const { data: prof } = await supabase.from("profiles").select("full_name,avatar_url").eq("id", user.id).maybeSingle();
+    const { error } = await supabase.from("reviews").insert({
+      product_id: item.product_id,
+      order_id: item.order_id,
+      user_id: user.id,
+      customer_name: prof?.full_name ?? user.email ?? "Customer",
+      customer_avatar: prof?.avatar_url ?? null,
+      rating, comment: comment.trim(),
+      is_verified_purchase: true,
+      is_approved: true,
+    } as any);
+    if (error) { setErr(error.message); setBusy(false); return; }
+    onDone();
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <div className="flex items-center gap-3">
+        {item.product_image ? <img src={item.product_image} alt="" className="h-12 w-12 rounded-lg object-cover" /> : <div className="h-12 w-12 rounded-lg bg-surface-2" />}
+        <div className="flex-1 min-w-0">
+          <div className="line-clamp-1 text-sm font-semibold">{item.product_name}</div>
+          <div className="font-mono text-[10px] text-muted-foreground">{item.order_number}</div>
+        </div>
+      </div>
+      <div className="mt-3 flex gap-1">
+        {[1,2,3,4,5].map(n => (
+          <button key={n} onClick={() => setRating(n)} type="button">
+            <Star className={`h-5 w-5 ${n <= rating ? "fill-warning text-warning" : "text-muted-foreground"}`} />
+          </button>
+        ))}
+      </div>
+      <textarea value={comment} onChange={(e) => setComment(e.target.value)} rows={2} placeholder="Share your experience…"
+        className="mt-2 w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/40" />
+      {err && <p className="mt-1 text-xs text-destructive">{err}</p>}
+      <button onClick={submit} disabled={busy} className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground shadow-glow disabled:opacity-60">
+        <Send className="h-3 w-3" /> Submit review
+      </button>
+    </div>
+  );
+}
