@@ -17,10 +17,11 @@ async function assertAdmin(ctx: { supabase: any; userId: string }) {
 export const validateCoupon = createServerFn({ method: "POST" })
   .inputValidator((d: { code: string; subtotal: number }) => d)
   .handler(async ({ data }) => {
-    const sb = publicClient();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const code = data.code.trim().toUpperCase();
     if (!code) return { ok: false as const, error: "Empty code" };
-    const { data: c } = await sb.from("coupons").select("*").ilike("code", code).maybeSingle();
+    const { data: c } = await supabaseAdmin.from("coupons").select("*").ilike("code", code).maybeSingle();
+
     if (!c || !c.is_active) return { ok: false as const, error: "Invalid coupon" };
     const now = new Date();
     if (c.starts_at && new Date(c.starts_at) > now) return { ok: false as const, error: "Coupon not active yet" };

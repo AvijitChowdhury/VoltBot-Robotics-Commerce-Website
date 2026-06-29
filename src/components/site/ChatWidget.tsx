@@ -1,55 +1,86 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { MessageCircle, X, Send } from "lucide-react";
 
 type Msg = { id: string; session_id: string; sender: string; message: string; created_at: string };
 
 const SESSION_KEY = "voltbot.chat.session";
+const TOKEN_KEY = "voltbot.chat.token";
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+const SUPABASE_KEY = (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+  import.meta.env.VITE_SUPABASE_ANON_KEY) as string;
+
+function tokenedClient(token: string): SupabaseClient<Database> {
+  return createClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false, storage: undefined },
+    global: { headers: { "x-chat-token": token } },
+  });
+}
 
 export function ChatWidget() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [clientToken, setClientToken] = useState<string | null>(null);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [text, setText] = useState("");
   const [guestName, setGuestName] = useState("");
   const [needsName, setNeedsName] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // Per-session client carrying the x-chat-token header so RLS lets us read/write our own session.
+  const sb = useMemo(() => (clientToken ? tokenedClient(clientToken) : supabase), [clientToken]);
+
   // Restore existing session
   useEffect(() => {
-    const stored = typeof window !== "undefined" ? localStorage.getItem(SESSION_KEY) : null;
-    if (stored) setSessionId(stored);
-    else if (!user) setNeedsName(true);
+    if (typeof window === "undefined") return;
+    const storedId = localStorage.getItem(SESSION_KEY);
+    const storedToken = localStorage.getItem(TOKEN_KEY);
+    if (storedId && storedToken) {
+      setSessionId(storedId);
+      setClientToken(storedToken);
+    } else if (!user) {
+      setNeedsName(true);
+    }
   }, [user]);
 
-  // Load messages + subscribe
+  // Load + poll messages (custom headers don't propagate to realtime, so poll while open).
   useEffect(() => {
     if (!sessionId) return;
     let active = true;
-    supabase.from("chat_messages").select("*").eq("session_id", sessionId).order("created_at").then(({ data }) => {
+    const load = async () => {
+      const { data } = await sb.from("chat_messages").select("*").eq("session_id", sessionId).order("created_at");
       if (active && data) setMessages(data as Msg[]);
-    });
-    const ch = supabase.channel(`chat:${sessionId}`).on("postgres_changes",
-      { event: "INSERT", schema: "public", table: "chat_messages", filter: `session_id=eq.${sessionId}` },
-      (p) => setMessages((prev) => [...prev, p.new as Msg])).subscribe();
-    return () => { active = false; supabase.removeChannel(ch); };
-  }, [sessionId]);
+    };
+    load();
+    const interval = window.setInterval(load, open ? 3000 : 15000);
+    return () => { active = false; window.clearInterval(interval); };
+  }, [sessionId, sb, open]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages, open]);
 
   async function startSession(name: string) {
-    const { data, error } = await supabase.from("chat_sessions").insert({
-      user_id: user?.id ?? null,
-      guest_name: user ? null : name,
-      guest_email: user?.email ?? null,
-      is_open: true,
-    } as any).select("id").single();
+    const { data, error } = await supabase
+      .from("chat_sessions")
+      .insert({
+        user_id: user?.id ?? null,
+        guest_name: user ? null : name,
+        guest_email: user?.email ?? null,
+        is_open: true,
+      } as any)
+      .select("id, client_token")
+      .single();
     if (error || !data) return;
+    const token = (data as any).client_token as string;
     localStorage.setItem(SESSION_KEY, data.id);
+    localStorage.setItem(TOKEN_KEY, token);
+    setClientToken(token);
     setSessionId(data.id);
     setNeedsName(false);
   }
@@ -58,8 +89,17 @@ export function ChatWidget() {
     if (!text.trim() || !sessionId) return;
     const msg = text.trim();
     setText("");
-    await supabase.from("chat_messages").insert({ session_id: sessionId, sender: "user", message: msg });
-    await supabase.from("chat_sessions").update({ last_message_at: new Date().toISOString(), unread_admin: (messages.filter(m => m.sender === "user").length) + 1 }).eq("id", sessionId);
+    await sb.from("chat_messages").insert({ session_id: sessionId, sender: "user", message: msg } as any);
+    await sb
+      .from("chat_sessions")
+      .update({
+        last_message_at: new Date().toISOString(),
+        unread_admin: messages.filter((m) => m.sender === "user").length + 1,
+      } as any)
+      .eq("id", sessionId);
+    // Optimistic refresh
+    const { data } = await sb.from("chat_messages").select("*").eq("session_id", sessionId).order("created_at");
+    if (data) setMessages(data as Msg[]);
   }
 
   return (

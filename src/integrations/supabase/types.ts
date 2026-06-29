@@ -239,6 +239,7 @@ export type Database = {
       }
       chat_sessions: {
         Row: {
+          client_token: string
           created_at: string
           guest_email: string | null
           guest_name: string
@@ -251,6 +252,7 @@ export type Database = {
           user_id: string | null
         }
         Insert: {
+          client_token?: string
           created_at?: string
           guest_email?: string | null
           guest_name: string
@@ -263,6 +265,7 @@ export type Database = {
           user_id?: string | null
         }
         Update: {
+          client_token?: string
           created_at?: string
           guest_email?: string | null
           guest_name?: string
