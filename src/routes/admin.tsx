@@ -227,7 +227,7 @@ function OrdersTab() {
         </div>
       )}
 
-      {open && <OrderEditor order={open} onClose={() => setOpen(null)} onSave={(p) => mut.mutate({ id: open.id, ...p })} saving={mut.isPending} />}
+      {open && <OrderEditor order={open} onClose={() => setOpen(null)} onSave={(p: any) => mut.mutate({ id: open.id, ...p })} saving={mut.isPending} />}
     </div>
   );
 }
@@ -425,7 +425,7 @@ function ProductsTab() {
         </div>
       )}
 
-      {edit && <ProductEditor product={edit} categories={data?.categories ?? []} onClose={() => setEdit(null)} onSave={(p) => mSave.mutate(p)} saving={mSave.isPending} />}
+      {edit && <ProductEditor product={edit} categories={data?.categories ?? []} onClose={() => setEdit(null)} onSave={(p: any) => mSave.mutate(p)} saving={mSave.isPending} />}
     </div>
   );
 }
