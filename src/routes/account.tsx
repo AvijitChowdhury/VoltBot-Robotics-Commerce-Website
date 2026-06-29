@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
 import { retryOrderPayment } from "@/lib/payments.functions";
-import { LogOut, Package, User as UserIcon, RefreshCw } from "lucide-react";
+import { LogOut, Package, User as UserIcon, RefreshCw, Star, Send } from "lucide-react";
 
 export const Route = createFileRoute("/account")({
   head: () => ({ meta: [{ title: "My Account — VoltBot" }] }),
