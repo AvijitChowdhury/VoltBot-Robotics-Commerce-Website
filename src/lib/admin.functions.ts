@@ -208,3 +208,237 @@ export const deleteProduct = createServerFn({ method: "POST" })
     if (error) return { ok: false, error: error.message };
     return { ok: true };
   });
+
+// ============== TRASH / BULK / MANUAL ORDER ==============
+
+export const trashOrders = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { ids: string[] }) => d)
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("orders").update({ deleted_at: new Date().toISOString() }).in("id", data.ids);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true, count: data.ids.length };
+  });
+
+export const restoreOrders = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { ids: string[] }) => d)
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("orders").update({ deleted_at: null }).in("id", data.ids);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  });
+
+export const permanentDeleteOrders = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { ids: string[] }) => d)
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("orders").delete().in("id", data.ids);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  });
+
+export const listTrashedOrders = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin.from("orders").select("*").not("deleted_at", "is", null).order("deleted_at", { ascending: false }).limit(200);
+    return data ?? [];
+  });
+
+export const bulkUpdateOrders = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { ids: string[]; status?: string; payment_status?: string }) => d)
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const patch: any = {};
+    if (data.status) patch.status = data.status;
+    if (data.payment_status) patch.payment_status = data.payment_status;
+    if (!Object.keys(patch).length) return { ok: false, error: "Nothing to update" };
+    const { error } = await supabaseAdmin.from("orders").update(patch).in("id", data.ids);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  });
+
+export const createManualOrder = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: {
+    customer_name: string; customer_email: string; customer_phone: string;
+    shipping_address: string; city: string; delivery_zone_id: string;
+    payment_method: "cod" | "uddoktapay" | "partial";
+    payment_status?: "paid" | "unpaid" | "partial" | "failed";
+    amount_paid?: number; notes?: string;
+    items: Array<{ product_id: string; quantity: number; unit_price?: number }>;
+  }) => d)
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (!data.items.length) return { ok: false, error: "Add at least one item" };
+
+    const ids = data.items.map(i => i.product_id);
+    const { data: products } = await supabaseAdmin.from("products").select("id,name,slug,price,image_url").in("id", ids);
+    if (!products?.length) return { ok: false, error: "No matching products" };
+
+    const { data: zone } = await supabaseAdmin.from("delivery_zones").select("id,fee").eq("id", data.delivery_zone_id).maybeSingle();
+    if (!zone) return { ok: false, error: "Invalid delivery zone" };
+
+    const lines = data.items.map(i => {
+      const p = products.find((x: any) => x.id === i.product_id)!;
+      const unit_price = i.unit_price ?? Number(p.price);
+      return { product_id: p.id, name: p.name, image_url: p.image_url, unit_price, quantity: i.quantity, subtotal: unit_price * i.quantity };
+    });
+    const subtotal = lines.reduce((s, l) => s + l.subtotal, 0);
+    const delivery_fee = Number(zone.fee);
+    const total = subtotal + delivery_fee;
+    const order_number = "VB-" + Date.now().toString(36).toUpperCase() + "-MAN";
+
+    const { data: order, error } = await supabaseAdmin.from("orders").insert({
+      order_number,
+      customer_name: data.customer_name, customer_email: data.customer_email, customer_phone: data.customer_phone,
+      shipping_address: data.shipping_address, city: data.city, delivery_zone_id: data.delivery_zone_id,
+      delivery_fee, subtotal, total,
+      status: "pending",
+      payment_method: data.payment_method,
+      payment_status: data.payment_status ?? "unpaid",
+      amount_paid: data.amount_paid ?? 0,
+      notes: data.notes ?? null,
+    }).select("id,order_number").single();
+    if (error || !order) return { ok: false, error: error?.message ?? "Failed" };
+
+    await supabaseAdmin.from("order_items").insert(lines.map(l => ({
+      order_id: order.id, product_id: l.product_id, product_name: l.name, product_image: l.image_url,
+      unit_price: l.unit_price, quantity: l.quantity, subtotal: l.subtotal,
+    })));
+    return { ok: true, order_id: order.id, order_number: order.order_number };
+  });
+
+// ============== BRANDS / TAGS ==============
+export const listBrandsAdmin = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin.from("brands").select("*").order("display_order");
+    return data ?? [];
+  });
+
+export const upsertBrand = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id?: string; name: string; slug: string; logo_url?: string | null; description?: string | null; display_order?: number; is_active: boolean }) => d)
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.id) {
+      const { id, ...patch } = data;
+      const { error } = await supabaseAdmin.from("brands").update(patch as any).eq("id", id!);
+      if (error) return { ok: false, error: error.message };
+    } else {
+      const { error } = await supabaseAdmin.from("brands").insert(data as any);
+      if (error) return { ok: false, error: error.message };
+    }
+    return { ok: true };
+  });
+
+export const deleteBrand = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("brands").delete().eq("id", data.id);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  });
+
+export const listTagsAdmin = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin.from("tags").select("*").order("name");
+    return data ?? [];
+  });
+
+export const upsertTag = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id?: string; name: string; slug: string }) => d)
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (data.id) {
+      const { id, ...patch } = data;
+      const { error } = await supabaseAdmin.from("tags").update(patch as any).eq("id", id!);
+      if (error) return { ok: false, error: error.message };
+    } else {
+      const { error } = await supabaseAdmin.from("tags").insert(data as any);
+      if (error) return { ok: false, error: error.message };
+    }
+    return { ok: true };
+  });
+
+export const deleteTag = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ context, data }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("tags").delete().eq("id", data.id);
+    if (error) return { ok: false, error: error.message };
+    return { ok: true };
+  });
+
+// ============== RECOVERY ANALYTICS ==============
+export const getRecoveryAnalytics = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await assertAdmin(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [{ data: inc }, { data: orders }] = await Promise.all([
+      supabaseAdmin.from("incomplete_orders").select("id,total,is_converted,created_at"),
+      supabaseAdmin.from("orders").select("id,total,recovered_from_incomplete,created_at").not("recovered_from_incomplete", "is", null),
+    ]);
+    const list = inc ?? [];
+    const recovered = orders ?? [];
+
+    const byDay: Record<string, { total: number; converted: number; revenue: number }> = {};
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 86400e3).toISOString().slice(0, 10);
+      byDay[d] = { total: 0, converted: 0, revenue: 0 };
+    }
+    list.forEach((r: any) => {
+      const d = (r.created_at ?? "").slice(0, 10);
+      if (d in byDay) { byDay[d].total++; if (r.is_converted) byDay[d].converted++; }
+    });
+    recovered.forEach((o: any) => {
+      const d = (o.created_at ?? "").slice(0, 10);
+      if (d in byDay) byDay[d].revenue += Number(o.total);
+    });
+
+    const total = list.length;
+    const converted = list.filter((r: any) => r.is_converted).length;
+    const recoveredRevenue = recovered.reduce((s: number, o: any) => s + Number(o.total), 0);
+    const abandonedValue = list.filter((r: any) => !r.is_converted).reduce((s: number, r: any) => s + Number(r.total), 0);
+
+    return {
+      stats: {
+        total, converted, abandoned: total - converted,
+        conversionRate: total ? Math.round((converted / total) * 100) : 0,
+        recoveredRevenue, abandonedValue,
+      },
+      series: Object.entries(byDay).map(([date, v]) => ({ date, ...v })),
+      funnel: [
+        { label: "Cart started", value: total },
+        { label: "Address entered", value: list.filter((r: any) => r.shipping_address).length },
+        { label: "Converted", value: converted },
+      ],
+    };
+  });
+
