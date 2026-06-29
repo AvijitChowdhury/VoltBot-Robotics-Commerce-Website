@@ -13,15 +13,16 @@ import {
 } from "@/lib/admin.functions";
 import {
   LayoutDashboard, ShoppingBag, Package, AlertCircle, TrendingUp,
-  ShieldAlert, Trash2, RotateCw, X, Edit3, Plus, Search,
+  ShieldAlert, Trash2, RotateCw, X, Edit3, Plus, Search, MessageCircle, Send,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — VoltBot" }] }),
   component: AdminPage,
 });
 
-type Tab = "dashboard" | "orders" | "incomplete" | "products";
+type Tab = "dashboard" | "orders" | "incomplete" | "products" | "chat";
 
 function AdminPage() {
   const { user, loading } = useAuth();
