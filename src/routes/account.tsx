@@ -4,7 +4,9 @@ import { Footer } from "@/components/site/Footer";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Package, User as UserIcon } from "lucide-react";
+import { useServerFn } from "@tanstack/react-start";
+import { retryOrderPayment } from "@/lib/payments.functions";
+import { LogOut, Package, User as UserIcon, RefreshCw } from "lucide-react";
 
 export const Route = createFileRoute("/account")({
   head: () => ({ meta: [{ title: "My Account — VoltBot" }] }),
@@ -77,17 +79,12 @@ function AccountPage() {
                     <th className="px-4 py-3">Status</th>
                     <th className="px-4 py-3">Payment</th>
                     <th className="px-4 py-3 text-right">Total</th>
+                    <th className="px-4 py-3"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {orders.map((o) => (
-                    <tr key={o.id} className="border-t border-border">
-                      <td className="px-4 py-3 font-mono text-xs">{o.order_number}</td>
-                      <td className="px-4 py-3 text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
-                      <td className="px-4 py-3"><span className="rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary capitalize">{o.status}</span></td>
-                      <td className="px-4 py-3 text-xs capitalize">{o.payment_method} · {o.payment_status}</td>
-                      <td className="px-4 py-3 text-right font-semibold">৳{Number(o.total).toLocaleString()}</td>
-                    </tr>
+                    <OrderRow key={o.id} order={o} />
                   ))}
                 </tbody>
               </table>
@@ -97,5 +94,35 @@ function AccountPage() {
       </main>
       <Footer />
     </div>
+  );
+}
+
+function OrderRow({ order: o }: { order: Order }) {
+  const retry = useServerFn(retryOrderPayment);
+  const [busy, setBusy] = useState(false);
+  const canRetry = o.payment_method !== "cod" && (o.payment_status === "unpaid" || o.payment_status === "failed" || o.payment_status === "partial");
+
+  async function onRetry() {
+    setBusy(true);
+    const r = await retry({ data: { order_id: o.id } });
+    if (r.ok) window.location.href = r.payment_url;
+    else { alert(r.error ?? "Failed"); setBusy(false); }
+  }
+
+  return (
+    <tr className="border-t border-border">
+      <td className="px-4 py-3 font-mono text-xs">{o.order_number}</td>
+      <td className="px-4 py-3 text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</td>
+      <td className="px-4 py-3"><span className="rounded-md bg-primary/10 px-2 py-1 text-xs font-semibold text-primary capitalize">{o.status}</span></td>
+      <td className="px-4 py-3 text-xs capitalize">{o.payment_method} · {o.payment_status}</td>
+      <td className="px-4 py-3 text-right font-semibold">৳{Number(o.total).toLocaleString()}</td>
+      <td className="px-4 py-3 text-right">
+        {canRetry && (
+          <button disabled={busy} onClick={onRetry} className="inline-flex items-center gap-1 rounded-md bg-primary/15 px-2 py-1 text-xs font-semibold text-primary hover:bg-primary/25 disabled:opacity-60">
+            <RefreshCw className={`h-3 w-3 ${busy ? "animate-spin" : ""}`} /> Retry payment
+          </button>
+        )}
+      </td>
+    </tr>
   );
 }

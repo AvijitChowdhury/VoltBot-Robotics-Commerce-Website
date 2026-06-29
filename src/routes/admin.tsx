@@ -13,15 +13,16 @@ import {
 } from "@/lib/admin.functions";
 import {
   LayoutDashboard, ShoppingBag, Package, AlertCircle, TrendingUp,
-  ShieldAlert, Trash2, RotateCw, X, Edit3, Plus, Search,
+  ShieldAlert, Trash2, RotateCw, X, Edit3, Plus, Search, MessageCircle, Send,
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — VoltBot" }] }),
   component: AdminPage,
 });
 
-type Tab = "dashboard" | "orders" | "incomplete" | "products";
+type Tab = "dashboard" | "orders" | "incomplete" | "products" | "chat";
 
 function AdminPage() {
   const { user, loading } = useAuth();
@@ -89,6 +90,7 @@ function AdminPage() {
             ["orders", "Orders", ShoppingBag],
             ["incomplete", "Incomplete & Recovery", AlertCircle],
             ["products", "Products", Package],
+            ["chat", "Live Chat", MessageCircle],
           ] as const).map(([k, label, Icon]) => (
             <button key={k} onClick={() => setTab(k)} className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${tab === k ? "bg-primary text-primary-foreground shadow-glow" : "text-muted-foreground hover:text-foreground"}`}>
               <Icon className="h-4 w-4" /> {label}
@@ -101,6 +103,7 @@ function AdminPage() {
           {tab === "orders" && <OrdersTab />}
           {tab === "incomplete" && <IncompleteTab />}
           {tab === "products" && <ProductsTab />}
+          {tab === "chat" && <ChatInboxTab />}
         </div>
       </main>
       <Footer />
@@ -502,6 +505,83 @@ function ProductEditor({ product, categories, onClose, onSave, saving }: any) {
             {saving ? "Saving…" : "Save product"}
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ChatInboxTab() {
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<any[]>([]);
+  const [text, setText] = useState("");
+
+  useEffect(() => {
+    supabase.from("chat_sessions").select("*").order("last_message_at", { ascending: false, nullsFirst: false }).limit(100)
+      .then(({ data }) => setSessions(data ?? []));
+    const ch = supabase.channel("admin-chat-sessions")
+      .on("postgres_changes", { event: "*", schema: "public", table: "chat_sessions" }, () => {
+        supabase.from("chat_sessions").select("*").order("last_message_at", { ascending: false, nullsFirst: false }).limit(100)
+          .then(({ data }) => setSessions(data ?? []));
+      }).subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
+
+  useEffect(() => {
+    if (!activeId) return;
+    let active = true;
+    supabase.from("chat_messages").select("*").eq("session_id", activeId).order("created_at")
+      .then(({ data }) => { if (active) setMessages(data ?? []); });
+    supabase.from("chat_sessions").update({ unread_admin: 0 } as any).eq("id", activeId).then(() => {});
+    const ch = supabase.channel(`admin-msgs:${activeId}`).on("postgres_changes",
+      { event: "INSERT", schema: "public", table: "chat_messages", filter: `session_id=eq.${activeId}` },
+      (p) => setMessages((m) => [...m, p.new])).subscribe();
+    return () => { active = false; supabase.removeChannel(ch); };
+  }, [activeId]);
+
+  async function reply() {
+    if (!text.trim() || !activeId) return;
+    const msg = text.trim();
+    setText("");
+    await supabase.from("chat_messages").insert({ session_id: activeId, sender: "admin", message: msg } as any);
+    await supabase.from("chat_sessions").update({ last_message_at: new Date().toISOString() } as any).eq("id", activeId);
+  }
+
+  return (
+    <div className="grid gap-4 lg:grid-cols-[320px_1fr] h-[640px]">
+      <div className="rounded-xl border border-border bg-card overflow-y-auto">
+        <div className="border-b border-border px-4 py-3 font-display font-semibold text-sm">Conversations</div>
+        {sessions.length === 0 && <p className="p-4 text-xs text-muted-foreground">No chats yet.</p>}
+        {sessions.map((s) => (
+          <button key={s.id} onClick={() => setActiveId(s.id)} className={`block w-full text-left border-b border-border px-4 py-3 hover:bg-surface ${activeId === s.id ? "bg-surface" : ""}`}>
+            <div className="flex justify-between gap-2">
+              <span className="font-semibold text-sm truncate">{s.guest_name ?? s.guest_email ?? "User"}</span>
+              {!!s.unread_admin && <span className="rounded-full bg-primary px-2 text-[10px] text-primary-foreground">{s.unread_admin}</span>}
+            </div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">{s.last_message_at ? new Date(s.last_message_at).toLocaleString() : "—"}</div>
+          </button>
+        ))}
+      </div>
+      <div className="rounded-xl border border-border bg-card flex flex-col">
+        {!activeId ? (
+          <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">Select a conversation</div>
+        ) : (
+          <>
+            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+              {messages.map((m: any) => (
+                <div key={m.id} className={`flex ${m.sender === "admin" ? "justify-end" : "justify-start"}`}>
+                  <div className={`max-w-[70%] rounded-2xl px-3 py-2 text-sm ${m.sender === "admin" ? "bg-primary text-primary-foreground" : "bg-surface"}`}>
+                    {m.message}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <form onSubmit={(e) => { e.preventDefault(); reply(); }} className="flex gap-2 border-t border-border p-3">
+              <input value={text} onChange={(e) => setText(e.target.value)} placeholder="Reply…" className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm" />
+              <button disabled={!text.trim()} className="rounded-lg bg-primary px-3 py-2 text-primary-foreground shadow-glow disabled:opacity-60"><Send className="h-4 w-4" /></button>
+            </form>
+          </>
+        )}
       </div>
     </div>
   );
