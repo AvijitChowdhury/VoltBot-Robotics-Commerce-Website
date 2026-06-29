@@ -90,6 +90,7 @@ function AdminPage() {
             ["orders", "Orders", ShoppingBag],
             ["incomplete", "Incomplete & Recovery", AlertCircle],
             ["products", "Products", Package],
+            ["chat", "Live Chat", MessageCircle],
           ] as const).map(([k, label, Icon]) => (
             <button key={k} onClick={() => setTab(k)} className={`inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${tab === k ? "bg-primary text-primary-foreground shadow-glow" : "text-muted-foreground hover:text-foreground"}`}>
               <Icon className="h-4 w-4" /> {label}
@@ -102,6 +103,7 @@ function AdminPage() {
           {tab === "orders" && <OrdersTab />}
           {tab === "incomplete" && <IncompleteTab />}
           {tab === "products" && <ProductsTab />}
+          {tab === "chat" && <ChatInboxTab />}
         </div>
       </main>
       <Footer />
