@@ -123,7 +123,9 @@ export const createOrder = createServerFn({ method: "POST" })
     coupon_code?: string | null;
   }) => d)
   .handler(async ({ data }) => {
-    const sb = publicClient();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const sb = supabaseAdmin;
+
     const zone = await sb.from("delivery_zones").select("id,fee").eq("id", data.delivery_zone_id).maybeSingle();
     if (!zone.data) return { ok: false as const, error: "Invalid delivery zone" };
     const subtotal = data.cart.reduce((s, l) => s + Number(l.price) * l.quantity, 0);
