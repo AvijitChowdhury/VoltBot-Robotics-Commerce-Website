@@ -56,19 +56,21 @@ export function Header() {
         </nav>
 
         <div className="ml-auto flex flex-1 items-center justify-end gap-2 lg:flex-none lg:gap-3">
-          <div className="hidden md:flex items-center gap-2 rounded-lg border border-border bg-surface/60 px-3 py-2 w-72">
+          <form onSubmit={(e) => { e.preventDefault(); navigate({ to: "/products", search: { q: q || undefined, sort: "newest", page: 1 } as any }); }}
+            className="hidden md:flex items-center gap-2 rounded-lg border border-border bg-surface/60 px-3 py-2 w-72">
             <Search className="h-4 w-4 text-muted-foreground" />
             <input
+              value={q} onChange={(e) => setQ(e.target.value)}
               placeholder="Search Arduino, ESP32, sensors…"
               className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground/70"
             />
-          </div>
+          </form>
           <Link to="/account" aria-label="Account" className="rounded-md p-2 text-muted-foreground hover:bg-surface hover:text-foreground transition-colors">
             <User className="h-5 w-5" />
           </Link>
           <Link to="/cart" aria-label="Cart" className="relative rounded-md p-2 text-muted-foreground hover:bg-surface hover:text-foreground transition-colors">
             <ShoppingCart className="h-5 w-5" />
-            <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">0</span>
+            {count > 0 && <span className="absolute -right-0.5 -top-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground">{count}</span>}
           </Link>
           <button aria-label="Menu" className="lg:hidden rounded-md p-2 text-muted-foreground hover:bg-surface hover:text-foreground">
             <Menu className="h-5 w-5" />
