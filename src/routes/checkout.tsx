@@ -24,7 +24,7 @@ function CheckoutPage() {
     shipping_address: "", city: "", delivery_zone_id: "",
     notes: "",
   });
-  const [paymentMethod, setPaymentMethod] = useState<"cod" | "online" | "partial">("cod");
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "uddoktapay" | "partial">("cod");
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [success, setSuccess] = useState<{ order_number: string } | null>(null);
