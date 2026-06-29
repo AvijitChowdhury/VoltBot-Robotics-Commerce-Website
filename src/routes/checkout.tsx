@@ -152,7 +152,7 @@ function CheckoutPage() {
                 <div className="grid gap-2 sm:grid-cols-3">
                   {([
                     { v: "cod", label: "Cash on delivery", sub: "Pay when you receive" },
-                    { v: "online", label: "Online (UddoktaPay)", sub: "bKash, Nagad, card" },
+                    { v: "uddoktapay", label: "Online (UddoktaPay)", sub: "bKash, Nagad, card" },
                     { v: "partial", label: "Partial (delivery online)", sub: "Pay delivery now, rest COD" },
                   ] as const).map((o) => (
                     <button key={o.v} type="button" onClick={() => setPaymentMethod(o.v)}

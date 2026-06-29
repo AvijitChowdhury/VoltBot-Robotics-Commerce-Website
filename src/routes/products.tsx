@@ -53,14 +53,14 @@ function ProductsPage() {
               <Search className="h-4 w-4 text-muted-foreground" />
               <input
                 defaultValue={search.q ?? ""}
-                onKeyDown={(e) => { if (e.key === "Enter") navigate({ search: (p) => ({ ...p, q: (e.target as HTMLInputElement).value || undefined, page: 1 }) }); }}
+                onKeyDown={(e) => { if (e.key === "Enter") navigate({ search: (p: any) => ({ ...p, q: (e.target as HTMLInputElement).value || undefined, page: 1 }) }); }}
                 placeholder="Search products…"
                 className="bg-transparent text-sm outline-none w-56 placeholder:text-muted-foreground/70"
               />
             </div>
             <select
               value={search.sort}
-              onChange={(e) => navigate({ search: (p) => ({ ...p, sort: e.target.value as any, page: 1 }) })}
+              onChange={(e) => navigate({ search: (p: any) => ({ ...p, sort: e.target.value as any, page: 1 }) })}
               className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
             >
               <option value="newest">Newest</option>
@@ -80,14 +80,14 @@ function ProductsPage() {
               </div>
               <ul className="mt-3 space-y-1">
                 <li>
-                  <button onClick={() => navigate({ search: (p) => ({ ...p, category: undefined, page: 1 }) })}
+                  <button onClick={() => navigate({ search: (p: any) => ({ ...p, category: undefined, page: 1 }) })}
                     className={`w-full text-left rounded-md px-3 py-2 text-sm ${!search.category ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-surface hover:text-foreground"}`}>
                     All categories
                   </button>
                 </li>
                 {data.categories.map((c) => (
                   <li key={c.id}>
-                    <button onClick={() => navigate({ search: (p) => ({ ...p, category: c.slug, page: 1 }) })}
+                    <button onClick={() => navigate({ search: (p: any) => ({ ...p, category: c.slug, page: 1 }) })}
                       className={`w-full text-left rounded-md px-3 py-2 text-sm ${search.category === c.slug ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-surface hover:text-foreground"}`}>
                       {c.name}
                     </button>
@@ -99,10 +99,10 @@ function ProductsPage() {
               <div className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Price (৳)</div>
               <div className="mt-3 flex gap-2">
                 <input type="number" placeholder="Min" defaultValue={search.minPrice ?? ""}
-                  onBlur={(e) => navigate({ search: (p) => ({ ...p, minPrice: e.target.value ? Number(e.target.value) : undefined, page: 1 }) })}
+                  onBlur={(e) => navigate({ search: (p: any) => ({ ...p, minPrice: e.target.value ? Number(e.target.value) : undefined, page: 1 }) })}
                   className="w-1/2 rounded-md border border-border bg-surface px-2 py-1.5 text-sm outline-none" />
                 <input type="number" placeholder="Max" defaultValue={search.maxPrice ?? ""}
-                  onBlur={(e) => navigate({ search: (p) => ({ ...p, maxPrice: e.target.value ? Number(e.target.value) : undefined, page: 1 }) })}
+                  onBlur={(e) => navigate({ search: (p: any) => ({ ...p, maxPrice: e.target.value ? Number(e.target.value) : undefined, page: 1 }) })}
                   className="w-1/2 rounded-md border border-border bg-surface px-2 py-1.5 text-sm outline-none" />
               </div>
             </div>
@@ -119,7 +119,7 @@ function ProductsPage() {
             {totalPages > 1 && (
               <div className="mt-10 flex items-center justify-center gap-1">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
-                  <button key={n} onClick={() => navigate({ search: (p) => ({ ...p, page: n }) })}
+                  <button key={n} onClick={() => navigate({ search: (p: any) => ({ ...p, page: n }) })}
                     className={`h-9 min-w-9 rounded-md px-3 text-sm font-medium ${n === search.page ? "bg-primary text-primary-foreground" : "border border-border bg-surface hover:bg-surface-2"}`}>
                     {n}
                   </button>
