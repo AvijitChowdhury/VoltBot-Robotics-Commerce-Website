@@ -207,9 +207,31 @@ function CheckoutPage() {
                   </li>
                 ))}
               </ul>
+              <div className="mt-4 border-t border-border pt-4">
+                {coupon ? (
+                  <div className="flex items-center justify-between rounded-lg border border-success/30 bg-success/10 px-3 py-2 text-sm">
+                    <span className="inline-flex items-center gap-2 font-mono"><Tag className="h-3 w-3" /> {coupon.code} · −৳{coupon.discount.toLocaleString()}</span>
+                    <button type="button" onClick={() => { setCoupon(null); setCouponInput(""); }} className="text-xs text-muted-foreground hover:text-destructive">Remove</button>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex gap-2">
+                      <input value={couponInput} onChange={(e) => setCouponInput(e.target.value)} placeholder="Coupon code" className="flex-1 rounded-lg border border-border bg-surface px-3 py-2 text-sm uppercase outline-none focus:ring-2 focus:ring-primary/40" />
+                      <button type="button" onClick={async () => {
+                        setCouponErr(null);
+                        const r = await validateCoupon({ data: { code: couponInput, subtotal } });
+                        if (r.ok) setCoupon({ code: r.code, discount: r.discount });
+                        else setCouponErr(r.error);
+                      }} className="rounded-lg border border-border bg-surface-2 px-3 py-2 text-xs font-semibold hover:bg-primary/20">Apply</button>
+                    </div>
+                    {couponErr && <p className="mt-1 text-xs text-destructive">{couponErr}</p>}
+                  </div>
+                )}
+              </div>
               <dl className="mt-4 space-y-2 border-t border-border pt-4 text-sm">
                 <div className="flex justify-between"><dt className="text-muted-foreground">Subtotal</dt><dd>৳{subtotal.toLocaleString()}</dd></div>
                 <div className="flex justify-between"><dt className="text-muted-foreground">Delivery</dt><dd>{zone ? `৳${deliveryFee.toLocaleString()}` : "—"}</dd></div>
+                {discount > 0 && <div className="flex justify-between text-success"><dt>Discount</dt><dd>−৳{discount.toLocaleString()}</dd></div>}
                 <div className="flex justify-between border-t border-border pt-2 font-display text-lg font-bold"><dt>Total</dt><dd className="text-primary">৳{total.toLocaleString()}</dd></div>
               </dl>
               <button disabled={submitting} className="mt-6 flex w-full items-center justify-center gap-2 rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground shadow-glow hover:brightness-110 disabled:opacity-60">
