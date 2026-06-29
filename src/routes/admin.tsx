@@ -191,9 +191,28 @@ function DashboardTab() {
   );
 }
 
+function FraudBadge({ score, level }: { score?: number | null; level?: string | null }) {
+  if (score == null && !level) return <span className="text-[10px] text-muted-foreground">—</span>;
+  const lvl = level ?? (score == null ? "unknown" : score < 50 ? "high" : score < 75 ? "medium" : "low");
+  const map: Record<string, string> = {
+    high: "bg-destructive/15 text-destructive border-destructive/30",
+    medium: "bg-warning/15 text-warning border-warning/30",
+    low: "bg-success/15 text-success border-success/30",
+    unknown: "bg-surface-2 text-muted-foreground border-border",
+  };
+  const Icon = lvl === "high" ? AlertTriangle : lvl === "medium" ? AlertCircle : lvl === "low" ? ShieldCheck : ShieldAlert;
+  return <span className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold ${map[lvl]}`}><Icon className="h-3 w-3" /> {lvl}{score != null ? ` ${Math.round(score)}%` : ""}</span>;
+}
+
 function OrdersTab() {
   const fn = useServerFn(listOrders);
   const update = useServerFn(updateOrder);
+  const trash = useServerFn(trashOrders);
+  const bulk = useServerFn(bulkUpdateOrders);
+  const pushBulk = useServerFn(pushOrdersBulkToSteadfast);
+  const pushOne = useServerFn(pushOrderToSteadfast);
+  const syncOne = useServerFn(syncOrderCourierStatus);
+  const autoFraud = useServerFn(autoCheckOrderFraud);
   const qc = useQueryClient();
   const [statusFilter, setStatusFilter] = useState("all");
   const [q, setQ] = useState("");
@@ -202,13 +221,42 @@ function OrdersTab() {
     queryFn: () => fn({ data: { status: statusFilter, q } }),
   });
   const [open, setOpen] = useState<any | null>(null);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [toast, setToast] = useState<string | null>(null);
+
+  const rows = (data ?? []) as any[];
+  const allChecked = rows.length > 0 && rows.every(r => selected.has(r.id));
+
   const mut = useMutation({
     mutationFn: (p: any) => update({ data: p }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ["admin", "orders"] }); qc.invalidateQueries({ queryKey: ["admin", "dashboard"] }); setOpen(null); },
   });
 
+  function toggle(id: string) {
+    setSelected(s => { const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  }
+
+  async function runBulkTrash() {
+    if (!selected.size || !confirm(`Move ${selected.size} order(s) to trash?`)) return;
+    const r = await trash({ data: { ids: Array.from(selected) } });
+    if (r.ok) { setToast(`Moved ${r.count} to trash`); setSelected(new Set()); qc.invalidateQueries({ queryKey: ["admin", "orders"] }); }
+  }
+  async function runBulkStatus(status: string) {
+    if (!selected.size) return;
+    await bulk({ data: { ids: Array.from(selected), status } });
+    setSelected(new Set()); qc.invalidateQueries({ queryKey: ["admin", "orders"] });
+  }
+  async function runBulkSteadfast() {
+    if (!selected.size) return;
+    const r = await pushBulk({ data: { order_ids: Array.from(selected) } });
+    setToast(r.ok ? `Steadfast: ${r.succeeded}/${r.total} pushed` : r.error);
+    setSelected(new Set()); qc.invalidateQueries({ queryKey: ["admin", "orders"] });
+  }
+
   return (
     <div>
+      {toast && <div className="mb-3 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-sm text-primary">{toast}</div>}
       <div className="flex gap-3 mb-4 flex-wrap">
         <div className="relative flex-1 min-w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -217,24 +265,64 @@ function OrdersTab() {
         <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} className="rounded-lg border border-border bg-surface px-3 py-2 text-sm">
           {["all", "pending", "processing", "shipped", "delivered", "cancelled"].map(s => <option key={s} value={s} className="bg-background">{s}</option>)}
         </select>
+        <button onClick={() => setManualOpen(true)} className="inline-flex items-center gap-1.5 rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground shadow-glow">
+          <Plus className="h-4 w-4" /> Manual order
+        </button>
       </div>
+
+      {selected.size > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-3 py-2 text-xs">
+          <span className="font-semibold text-primary">{selected.size} selected</span>
+          <span className="flex-1" />
+          <button onClick={runBulkSteadfast} className="inline-flex items-center gap-1 rounded-md bg-primary px-2.5 py-1 font-semibold text-primary-foreground"><Truck className="h-3 w-3" /> Send to Steadfast</button>
+          <select onChange={e => { if (e.target.value) runBulkStatus(e.target.value); e.target.value = ""; }} className="rounded-md border border-border bg-surface px-2 py-1">
+            <option value="">Set status…</option>
+            {["pending","processing","shipped","delivered","cancelled"].map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <button onClick={runBulkTrash} className="inline-flex items-center gap-1 rounded-md border border-destructive/40 px-2.5 py-1 font-semibold text-destructive hover:bg-destructive/10"><Trash2 className="h-3 w-3" /> Trash</button>
+          <button onClick={() => setSelected(new Set())} className="rounded-md border border-border px-2 py-1">Clear</button>
+        </div>
+      )}
 
       {isLoading ? <p className="text-muted-foreground">Loading…</p> : (
         <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full text-sm">
             <thead className="bg-surface text-left text-xs uppercase tracking-widest text-muted-foreground">
-              <tr><th className="px-3 py-2">Order</th><th>Customer</th><th>Items</th><th>Payment</th><th>Status</th><th className="text-right">Total</th><th></th></tr>
+              <tr>
+                <th className="px-3 py-2 w-8"><input type="checkbox" checked={allChecked} onChange={e => setSelected(e.target.checked ? new Set(rows.map(r => r.id)) : new Set())} /></th>
+                <th>Order</th><th>Customer</th><th>Fraud</th><th>Items</th><th>Payment</th><th>Status</th><th>Courier</th><th className="text-right">Total</th><th></th>
+              </tr>
             </thead>
             <tbody>
-              {(data ?? []).map((o: any) => (
+              {rows.map(o => (
                 <tr key={o.id} className="border-t border-border">
-                  <td className="px-3 py-2 font-mono text-xs">{o.order_number}<div className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</div></td>
-                  <td>{o.customer_name}<div className="text-[10px] text-muted-foreground">{o.customer_phone}</div></td>
+                  <td className="px-3 py-2"><input type="checkbox" checked={selected.has(o.id)} onChange={() => toggle(o.id)} /></td>
+                  <td className="font-mono text-xs">{o.order_number}<div className="text-[10px] text-muted-foreground">{new Date(o.created_at).toLocaleDateString()}</div></td>
+                  <td className="text-xs">{o.customer_name}<div className="text-[10px] text-muted-foreground">{o.customer_phone}</div></td>
+                  <td><FraudBadge score={o.fraud_score} level={o.fraud_data?.risk_level} /></td>
                   <td className="text-xs">{o.order_items?.length ?? 0}</td>
-                  <td className="text-xs capitalize">{o.payment_method}<div className="text-[10px] text-muted-foreground">{o.payment_status}{o.transaction_id ? ` · ${o.transaction_id}` : ""}</div></td>
+                  <td className="text-xs capitalize">{o.payment_method}<div className="text-[10px] text-muted-foreground">{o.payment_status}</div></td>
                   <td><span className="rounded-md bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary capitalize">{o.status}</span></td>
+                  <td className="text-xs">
+                    {o.courier_tracking_code ? (
+                      <div>
+                        <div className="font-mono">{o.courier_tracking_code}</div>
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">{o.courier_status}
+                          <button title="Sync" onClick={async () => { await syncOne({ data: { order_id: o.id } }); qc.invalidateQueries({ queryKey: ["admin", "orders"] }); }} className="hover:text-primary"><RefreshCw className="h-3 w-3" /></button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={async () => { const r = await pushOne({ data: { order_id: o.id } }); setToast(r.ok ? `Pushed → ${r.tracking_code}` : r.error); qc.invalidateQueries({ queryKey: ["admin", "orders"] }); }}
+                        className="inline-flex items-center gap-1 rounded-md border border-primary/30 bg-primary/10 px-2 py-1 text-[10px] font-semibold text-primary hover:bg-primary/20">
+                        <Truck className="h-3 w-3" /> Steadfast
+                      </button>
+                    )}
+                  </td>
                   <td className="text-right font-semibold">৳{Number(o.total).toLocaleString()}</td>
-                  <td><button onClick={() => setOpen(o)} className="rounded-md p-1.5 hover:bg-surface-2"><Edit3 className="h-3.5 w-3.5" /></button></td>
+                  <td className="space-x-1 whitespace-nowrap">
+                    {!o.fraud_checked_at && <button title="Check fraud" onClick={async () => { await autoFraud({ data: { order_id: o.id } }); qc.invalidateQueries({ queryKey: ["admin", "orders"] }); }} className="rounded-md p-1.5 hover:bg-surface-2"><ShieldCheck className="h-3.5 w-3.5" /></button>}
+                    <button onClick={() => setOpen(o)} className="rounded-md p-1.5 hover:bg-surface-2"><Edit3 className="h-3.5 w-3.5" /></button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -243,9 +331,11 @@ function OrdersTab() {
       )}
 
       {open && <OrderEditor order={open} onClose={() => setOpen(null)} onSave={(p: any) => mut.mutate({ id: open.id, ...p })} saving={mut.isPending} />}
+      {manualOpen && <ManualOrderModal onClose={() => setManualOpen(false)} onCreated={() => { setManualOpen(false); qc.invalidateQueries({ queryKey: ["admin", "orders"] }); }} />}
     </div>
   );
 }
+
 
 function OrderEditor({ order, onClose, onSave, saving }: any) {
   const [status, setStatus] = useState(order.status);
