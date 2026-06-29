@@ -92,7 +92,7 @@ export const saveIncompleteOrder = createServerFn({ method: "POST" })
     cart: CartLine[]; subtotal: number; total: number; last_field_updated?: string;
   }) => d)
   .handler(async ({ data }) => {
-    const sb = publicClient();
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const payload = {
       session_id: data.session_id,
       customer_name: data.customer_name ?? null,
@@ -106,10 +106,11 @@ export const saveIncompleteOrder = createServerFn({ method: "POST" })
       total: data.total,
       last_field_updated: data.last_field_updated ?? null,
     };
-    const { error } = await sb.from("incomplete_orders").upsert(payload, { onConflict: "session_id" });
+    const { error } = await supabaseAdmin.from("incomplete_orders").upsert(payload, { onConflict: "session_id" });
     if (error) return { ok: false, error: error.message };
     return { ok: true };
   });
+
 
 export const createOrder = createServerFn({ method: "POST" })
   .inputValidator((d: {
