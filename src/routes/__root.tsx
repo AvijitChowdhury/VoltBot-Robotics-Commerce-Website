@@ -119,6 +119,7 @@ function RootComponent() {
       <AuthProvider>
         <CartProvider>
           <Outlet />
+          <ChatWidget />
         </CartProvider>
       </AuthProvider>
     </QueryClientProvider>
