@@ -47,7 +47,7 @@ export function ChatWidget() {
       guest_name: user ? null : name,
       guest_email: user?.email ?? null,
       is_open: true,
-    }).select("id").single();
+    } as any).select("id").single();
     if (error || !data) return;
     localStorage.setItem(SESSION_KEY, data.id);
     setSessionId(data.id);
