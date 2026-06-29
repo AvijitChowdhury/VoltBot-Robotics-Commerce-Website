@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Header } from "@/components/site/Header";
 import { Footer } from "@/components/site/Footer";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -10,10 +10,16 @@ import {
   listOrders, updateOrder,
   listIncompleteOrders, convertIncompleteOrder, deleteIncompleteOrder,
   listProductsAdmin, upsertProduct, deleteProduct,
+  trashOrders, restoreOrders, permanentDeleteOrders, listTrashedOrders, bulkUpdateOrders, createManualOrder,
+  getRecoveryAnalytics,
 } from "@/lib/admin.functions";
+import { pushOrderToSteadfast, pushOrdersBulkToSteadfast, syncOrderCourierStatus } from "@/lib/couriers.functions";
+import { checkPhoneFraud, autoCheckOrderFraud, getFraudSettingsFn, updateFraudSettings, testBdCourierConnection } from "@/lib/fraud.functions";
+import { listCoupons, upsertCoupon, deleteCoupon } from "@/lib/coupons.functions";
 import {
   LayoutDashboard, ShoppingBag, Package, AlertCircle, TrendingUp,
   ShieldAlert, Trash2, RotateCw, X, Edit3, Plus, Search, MessageCircle, Send,
+  Truck, ShieldCheck, Tag, Settings, RefreshCw, AlertTriangle, CheckCircle2, Undo2,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -22,7 +28,7 @@ export const Route = createFileRoute("/admin")({
   component: AdminPage,
 });
 
-type Tab = "dashboard" | "orders" | "incomplete" | "products" | "chat";
+type Tab = "dashboard" | "orders" | "trash" | "incomplete" | "products" | "coupons" | "chat" | "settings";
 
 function AdminPage() {
   const { user, loading } = useAuth();
