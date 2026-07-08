@@ -30,3 +30,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# E2E test artifacts
+tests/e2e/screenshots/
+allure-results/
+allure-report/
