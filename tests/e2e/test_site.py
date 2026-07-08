@@ -103,7 +103,7 @@ def _sign_in(page: Page) -> bool:
     page.wait_for_timeout(2000)
     page.locator("input[type='email']").first.fill(ADMIN_EMAIL)
     page.locator("input[type='password']").first.fill(ADMIN_PASSWORD)
-    page.locator("button[type='submit']").first.click()
+    page.get_by_role("button", name="Sign in").first.click()
     page.wait_for_timeout(4000)
     return "/auth" not in page.url
 
