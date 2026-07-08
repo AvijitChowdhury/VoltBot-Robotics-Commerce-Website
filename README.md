@@ -160,13 +160,14 @@ Key rules the codebase enforces:
 
 ## End-to-end tests & Allure report
 
-The Playwright suite lives at `docs/e2e_test_site.py`. It walks the eight primary routes, checks for runtime errors, attaches every screenshot to the Allure report and asserts `100%` pass.
+The Playwright suite lives at [`tests/e2e/`](tests/e2e/). It walks the eight primary routes, checks for runtime errors, attaches every screenshot to the Allure report and asserts `100%` pass. See [`tests/e2e/README.md`](tests/e2e/README.md) for full docs.
 
 Run it locally:
 
 ```bash
-python -m pip install pytest pytest-playwright allure-pytest
-python -m pytest docs/e2e_test_site.py --alluredir=allure-results
+python -m pip install -r tests/e2e/requirements.txt
+python -m playwright install chromium
+python -m pytest tests/e2e --alluredir=allure-results
 allure generate allure-results -o allure-report --clean
 allure open allure-report
 ```
