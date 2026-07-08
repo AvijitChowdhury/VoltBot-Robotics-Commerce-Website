@@ -29,7 +29,7 @@ def _shot(page: Page, name: str):
 @allure.feature("Home")
 def test_home_loads(page: Page):
     page.goto(BASE, wait_until="domcontentloaded")
-    page.wait_for_timeout(1200)
+    page.wait_for_timeout(3500)
     assert len(page.title()) > 0
     _shot(page, "01_home")
 
@@ -37,53 +37,53 @@ def test_home_loads(page: Page):
 @allure.feature("Products")
 def test_products_page(page: Page):
     page.goto(f"{BASE}/products", wait_until="domcontentloaded")
-    page.wait_for_timeout(1500)
+    page.wait_for_timeout(3500)
     _shot(page, "02_products")
 
 
 @allure.feature("Product Detail")
 def test_product_detail(page: Page):
     page.goto(f"{BASE}/products", wait_until="domcontentloaded")
-    page.wait_for_timeout(1500)
+    page.wait_for_timeout(3500)
     link = page.locator("a[href*='/product/']").first
     if link.count():
         link.click()
-        page.wait_for_timeout(1500)
+        page.wait_for_timeout(3500)
     _shot(page, "03_product_detail")
 
 
 @allure.feature("Cart")
 def test_cart_page(page: Page):
     page.goto(f"{BASE}/cart", wait_until="domcontentloaded")
-    page.wait_for_timeout(1000)
+    page.wait_for_timeout(3000)
     _shot(page, "04_cart")
 
 
 @allure.feature("Checkout")
 def test_checkout_page(page: Page):
     page.goto(f"{BASE}/checkout", wait_until="domcontentloaded")
-    page.wait_for_timeout(1000)
+    page.wait_for_timeout(3000)
     _shot(page, "05_checkout")
 
 
 @allure.feature("Auth")
 def test_auth_page(page: Page):
     page.goto(f"{BASE}/auth", wait_until="domcontentloaded")
-    page.wait_for_timeout(1000)
+    page.wait_for_timeout(3000)
     _shot(page, "06_auth")
 
 
 @allure.feature("Account")
 def test_account_redirects(page: Page):
     page.goto(f"{BASE}/account", wait_until="domcontentloaded")
-    page.wait_for_timeout(1500)
+    page.wait_for_timeout(3500)
     _shot(page, "07_account")
 
 
 @allure.feature("Admin")
 def test_admin_page(page: Page):
     page.goto(f"{BASE}/admin", wait_until="domcontentloaded")
-    page.wait_for_timeout(1500)
+    page.wait_for_timeout(3500)
     _shot(page, "08_admin")
 
 
@@ -92,6 +92,6 @@ def test_no_console_errors(page: Page):
     errors = []
     page.on("pageerror", lambda e: errors.append(str(e)))
     page.goto(BASE, wait_until="domcontentloaded")
-    page.wait_for_timeout(2000)
+    page.wait_for_timeout(3500)
     # hydration mismatch warnings are non-fatal — only assert on pageerror
     assert not errors, f"Runtime errors: {errors}"
