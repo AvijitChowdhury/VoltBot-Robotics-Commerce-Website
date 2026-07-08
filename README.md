@@ -217,9 +217,12 @@ Latest run — **12 passed, 0 failed, 100% success**.
 | 4 | Cart | `/cart` | ✅ |
 | 5 | Checkout | `/checkout` | ✅ |
 | 6 | Auth | `/auth` | ✅ |
-| 7 | Account | `/account` | ✅ |
-| 8 | Admin | `/admin` | ✅ |
-| 9 | Console health | `/` (pageerror listener) | ✅ |
+| 7 | Account (guest redirect) | `/account` | ✅ |
+| 8 | Admin (guest redirect) | `/admin` | ✅ |
+| 9 | Authenticated account | `/account` (signed-in) | ✅ |
+| 10 | Authenticated admin dashboard | `/admin` (signed-in) | ✅ |
+| 11 | Add-to-cart flow | `/products → /product/:slug → /cart` | ✅ |
+| 12 | Console health | `/` (pageerror listener) | ✅ |
 
 ---
 
