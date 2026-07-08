@@ -54,9 +54,17 @@ Captured by the Playwright suite in [`tests/e2e/`](tests/e2e/) at 1280 × 1800 C
 | --- | --- |
 | ![Checkout](docs/screenshots/05_checkout.png) | ![Auth](docs/screenshots/06_auth.png) |
 
-| Account | Admin |
+| Account (guest redirect) | Admin (guest redirect) |
 | --- | --- |
 | ![Account](docs/screenshots/07_account.png) | ![Admin](docs/screenshots/08_admin.png) |
+
+| Account — signed in | Admin dashboard — signed in |
+| --- | --- |
+| ![Account signed in](docs/screenshots/09_account_signed_in.png) | ![Admin signed in](docs/screenshots/10_admin_signed_in.png) |
+
+| Cart with item (add-to-cart flow) | |
+| --- | --- |
+| ![Cart with item](docs/screenshots/11_cart_with_item.png) | |
 
 ---
 
