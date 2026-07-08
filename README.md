@@ -54,9 +54,17 @@ Captured by the Playwright suite in [`tests/e2e/`](tests/e2e/) at 1280 × 1800 C
 | --- | --- |
 | ![Checkout](docs/screenshots/05_checkout.png) | ![Auth](docs/screenshots/06_auth.png) |
 
-| Account | Admin |
+| Account (guest redirect) | Admin (guest redirect) |
 | --- | --- |
 | ![Account](docs/screenshots/07_account.png) | ![Admin](docs/screenshots/08_admin.png) |
+
+| Account — signed in | Admin dashboard — signed in |
+| --- | --- |
+| ![Account signed in](docs/screenshots/09_account_signed_in.png) | ![Admin signed in](docs/screenshots/10_admin_signed_in.png) |
+
+| Cart with item (add-to-cart flow) | |
+| --- | --- |
+| ![Cart with item](docs/screenshots/11_cart_with_item.png) | |
 
 ---
 
@@ -160,19 +168,22 @@ Key rules the codebase enforces:
 
 ## End-to-end tests & Allure report
 
-The Playwright suite lives at [`tests/e2e/`](tests/e2e/). It walks the eight primary routes, checks for runtime errors, attaches every screenshot to the Allure report and asserts `100%` pass. See [`tests/e2e/README.md`](tests/e2e/README.md) for full docs.
+The Playwright suite lives at [`tests/e2e/`](tests/e2e/). It walks every public route, signs in as an admin, exercises the add-to-cart flow, checks for runtime errors, attaches every screenshot to the Allure report and asserts `100%` pass. See [`tests/e2e/README.md`](tests/e2e/README.md) for full docs.
 
 Run it locally:
 
 ```bash
 python -m pip install -r tests/e2e/requirements.txt
 python -m playwright install chromium
+# admin creds for the signed-in tests (defaults to the built-in admin)
+export E2E_ADMIN_EMAIL=admin@example.com
+export E2E_ADMIN_PASSWORD=your-password
 python -m pytest tests/e2e --alluredir=allure-results
 allure generate allure-results -o allure-report --clean
 allure open allure-report
 ```
 
-Latest run — **9 passed, 0 failed, 100% success**.
+Latest run — **12 passed, 0 failed, 100% success**.
 
 ### Allure report — Overview
 
@@ -206,9 +217,12 @@ Latest run — **9 passed, 0 failed, 100% success**.
 | 4 | Cart | `/cart` | ✅ |
 | 5 | Checkout | `/checkout` | ✅ |
 | 6 | Auth | `/auth` | ✅ |
-| 7 | Account | `/account` | ✅ |
-| 8 | Admin | `/admin` | ✅ |
-| 9 | Console health | `/` (pageerror listener) | ✅ |
+| 7 | Account (guest redirect) | `/account` | ✅ |
+| 8 | Admin (guest redirect) | `/admin` | ✅ |
+| 9 | Authenticated account | `/account` (signed-in) | ✅ |
+| 10 | Authenticated admin dashboard | `/admin` (signed-in) | ✅ |
+| 11 | Add-to-cart flow | `/products → /product/:slug → /cart` | ✅ |
+| 12 | Console health | `/` (pageerror listener) | ✅ |
 
 ---
 
