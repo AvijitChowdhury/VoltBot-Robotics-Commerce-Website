@@ -40,7 +40,7 @@
 
 ## Live screenshots
 
-Captured by the Playwright suite in `docs/e2e_test_site.py` at 1280 × 1800 CSS px.
+Captured by the Playwright suite in [`tests/e2e/`](tests/e2e/) at 1280 × 1800 CSS px.
 
 | Home | Products |
 | --- | --- |
