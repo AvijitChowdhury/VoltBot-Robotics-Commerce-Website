@@ -18,6 +18,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AccountRouteImport } from './routes/account'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ProductSlugRouteImport } from './routes/product.$slug'
+import { Route as BlogRobotComponentsGuideRouteImport } from './routes/blog.robot-components-guide'
 import { Route as ApiPublicCourierStatusSyncRouteImport } from './routes/api/public/courier-status-sync'
 import { Route as ApiPublicUddoktapayWebhookRouteImport } from './routes/api/public/uddoktapay.webhook'
 
@@ -66,6 +67,12 @@ const ProductSlugRoute = ProductSlugRouteImport.update({
   path: '/product/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BlogRobotComponentsGuideRoute =
+  BlogRobotComponentsGuideRouteImport.update({
+    id: '/blog/robot-components-guide',
+    path: '/blog/robot-components-guide',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicCourierStatusSyncRoute =
   ApiPublicCourierStatusSyncRouteImport.update({
     id: '/api/public/courier-status-sync',
@@ -88,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof CheckoutRoute
   '/products': typeof ProductsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/blog/robot-components-guide': typeof BlogRobotComponentsGuideRoute
   '/product/$slug': typeof ProductSlugRoute
   '/api/public/courier-status-sync': typeof ApiPublicCourierStatusSyncRoute
   '/api/public/uddoktapay/webhook': typeof ApiPublicUddoktapayWebhookRoute
@@ -101,6 +109,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof CheckoutRoute
   '/products': typeof ProductsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/blog/robot-components-guide': typeof BlogRobotComponentsGuideRoute
   '/product/$slug': typeof ProductSlugRoute
   '/api/public/courier-status-sync': typeof ApiPublicCourierStatusSyncRoute
   '/api/public/uddoktapay/webhook': typeof ApiPublicUddoktapayWebhookRoute
@@ -115,6 +124,7 @@ export interface FileRoutesById {
   '/checkout': typeof CheckoutRoute
   '/products': typeof ProductsRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/blog/robot-components-guide': typeof BlogRobotComponentsGuideRoute
   '/product/$slug': typeof ProductSlugRoute
   '/api/public/courier-status-sync': typeof ApiPublicCourierStatusSyncRoute
   '/api/public/uddoktapay/webhook': typeof ApiPublicUddoktapayWebhookRoute
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/products'
     | '/sitemap.xml'
+    | '/blog/robot-components-guide'
     | '/product/$slug'
     | '/api/public/courier-status-sync'
     | '/api/public/uddoktapay/webhook'
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/products'
     | '/sitemap.xml'
+    | '/blog/robot-components-guide'
     | '/product/$slug'
     | '/api/public/courier-status-sync'
     | '/api/public/uddoktapay/webhook'
@@ -156,6 +168,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/products'
     | '/sitemap.xml'
+    | '/blog/robot-components-guide'
     | '/product/$slug'
     | '/api/public/courier-status-sync'
     | '/api/public/uddoktapay/webhook'
@@ -170,6 +183,7 @@ export interface RootRouteChildren {
   CheckoutRoute: typeof CheckoutRoute
   ProductsRoute: typeof ProductsRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  BlogRobotComponentsGuideRoute: typeof BlogRobotComponentsGuideRoute
   ProductSlugRoute: typeof ProductSlugRoute
   ApiPublicCourierStatusSyncRoute: typeof ApiPublicCourierStatusSyncRoute
   ApiPublicUddoktapayWebhookRoute: typeof ApiPublicUddoktapayWebhookRoute
@@ -240,6 +254,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProductSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/blog/robot-components-guide': {
+      id: '/blog/robot-components-guide'
+      path: '/blog/robot-components-guide'
+      fullPath: '/blog/robot-components-guide'
+      preLoaderRoute: typeof BlogRobotComponentsGuideRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/courier-status-sync': {
       id: '/api/public/courier-status-sync'
       path: '/api/public/courier-status-sync'
@@ -266,6 +287,7 @@ const rootRouteChildren: RootRouteChildren = {
   CheckoutRoute: CheckoutRoute,
   ProductsRoute: ProductsRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  BlogRobotComponentsGuideRoute: BlogRobotComponentsGuideRoute,
   ProductSlugRoute: ProductSlugRoute,
   ApiPublicCourierStatusSyncRoute: ApiPublicCourierStatusSyncRoute,
   ApiPublicUddoktapayWebhookRoute: ApiPublicUddoktapayWebhookRoute,
