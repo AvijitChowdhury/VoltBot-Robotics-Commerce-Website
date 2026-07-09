@@ -157,6 +157,36 @@ Captured by the Playwright suite in [`tests/e2e/`](tests/e2e/) at 1280 × 1800 C
               (courier)                  (payments)
 ```
 
+### System architecture (rendered)
+
+```mermaid
+flowchart LR
+    U[Browser<br/>React 19 hydrate]
+    subgraph CF[Cloudflare Worker]
+        SSR[TanStack Start SSR]
+        RPC[createServerFn RPC<br/>requireSupabaseAuth]
+        API[/api/public/*<br/>webhooks • cron/]
+    end
+    subgraph LC[Lovable Cloud]
+        PG[(Postgres<br/>RLS + GRANTs)]
+        AUTH[Auth]
+        STO[Storage]
+    end
+    SF[Steadfast API<br/>courier]
+    UP[UddoktaPay<br/>payments]
+
+    U <--> SSR
+    U <--> RPC
+    SSR --> RPC
+    RPC --> PG
+    RPC --> AUTH
+    RPC --> STO
+    API --> PG
+    RPC --> SF
+    UP -->|signed webhook| API
+    SF -->|status sync| API
+```
+
 Key rules the codebase enforces:
 
 - Every `public.*` table has explicit `GRANT`s + RLS policies.
