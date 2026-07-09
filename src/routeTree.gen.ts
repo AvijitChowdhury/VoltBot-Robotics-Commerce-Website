@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ProductsRouteImport } from './routes/products'
 import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CartRouteImport } from './routes/cart'
@@ -20,6 +21,11 @@ import { Route as ProductSlugRouteImport } from './routes/product.$slug'
 import { Route as ApiPublicCourierStatusSyncRouteImport } from './routes/api/public/courier-status-sync'
 import { Route as ApiPublicUddoktapayWebhookRouteImport } from './routes/api/public/uddoktapay.webhook'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ProductsRoute = ProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/products': typeof ProductsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/product/$slug': typeof ProductSlugRoute
   '/api/public/courier-status-sync': typeof ApiPublicCourierStatusSyncRoute
   '/api/public/uddoktapay/webhook': typeof ApiPublicUddoktapayWebhookRoute
@@ -93,6 +100,7 @@ export interface FileRoutesByTo {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/products': typeof ProductsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/product/$slug': typeof ProductSlugRoute
   '/api/public/courier-status-sync': typeof ApiPublicCourierStatusSyncRoute
   '/api/public/uddoktapay/webhook': typeof ApiPublicUddoktapayWebhookRoute
@@ -106,6 +114,7 @@ export interface FileRoutesById {
   '/cart': typeof CartRoute
   '/checkout': typeof CheckoutRoute
   '/products': typeof ProductsRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/product/$slug': typeof ProductSlugRoute
   '/api/public/courier-status-sync': typeof ApiPublicCourierStatusSyncRoute
   '/api/public/uddoktapay/webhook': typeof ApiPublicUddoktapayWebhookRoute
@@ -120,6 +129,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/products'
+    | '/sitemap.xml'
     | '/product/$slug'
     | '/api/public/courier-status-sync'
     | '/api/public/uddoktapay/webhook'
@@ -132,6 +142,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/products'
+    | '/sitemap.xml'
     | '/product/$slug'
     | '/api/public/courier-status-sync'
     | '/api/public/uddoktapay/webhook'
@@ -144,6 +155,7 @@ export interface FileRouteTypes {
     | '/cart'
     | '/checkout'
     | '/products'
+    | '/sitemap.xml'
     | '/product/$slug'
     | '/api/public/courier-status-sync'
     | '/api/public/uddoktapay/webhook'
@@ -157,6 +169,7 @@ export interface RootRouteChildren {
   CartRoute: typeof CartRoute
   CheckoutRoute: typeof CheckoutRoute
   ProductsRoute: typeof ProductsRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   ProductSlugRoute: typeof ProductSlugRoute
   ApiPublicCourierStatusSyncRoute: typeof ApiPublicCourierStatusSyncRoute
   ApiPublicUddoktapayWebhookRoute: typeof ApiPublicUddoktapayWebhookRoute
@@ -164,6 +177,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/products': {
       id: '/products'
       path: '/products'
@@ -245,6 +265,7 @@ const rootRouteChildren: RootRouteChildren = {
   CartRoute: CartRoute,
   CheckoutRoute: CheckoutRoute,
   ProductsRoute: ProductsRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   ProductSlugRoute: ProductSlugRoute,
   ApiPublicCourierStatusSyncRoute: ApiPublicCourierStatusSyncRoute,
   ApiPublicUddoktapayWebhookRoute: ApiPublicUddoktapayWebhookRoute,
