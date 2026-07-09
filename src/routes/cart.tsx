@@ -40,7 +40,9 @@ function CartPage() {
                     <div className="mt-1 font-display text-lg font-bold text-primary">৳{l.price.toLocaleString()}</div>
                   </div>
                   <div className="inline-flex items-center rounded-lg border border-border bg-surface">
-                    <button onClick={() => setQty(l.product_id, l.quantity - 1)} className="px-2.5 py-2 hover:text-primary"><Minus className="h-3.5 w-3.5" /></button>
+                    <button aria-label="Decrease quantity" onClick={() => setQty(l.product_id, l.quantity - 1)} className="px-2.5 py-2 hover:text-primary"><Minus className="h-3.5 w-3.5" /></button>
+                    <span className="w-8 text-center text-sm font-semibold">{l.quantity}</span>
+                    <button aria-label="Increase quantity" onClick={() => setQty(l.product_id, l.quantity + 1)} className="px-2.5 py-2 hover:text-primary"><Plus className="h-3.5 w-3.5" /></button>
                     <span className="w-8 text-center text-sm font-semibold">{l.quantity}</span>
                     <button onClick={() => setQty(l.product_id, l.quantity + 1)} className="px-2.5 py-2 hover:text-primary"><Plus className="h-3.5 w-3.5" /></button>
                   </div>

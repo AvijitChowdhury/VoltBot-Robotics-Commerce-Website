@@ -1,0 +1,17 @@
+# VoltBot
+
+> Premium electronics and robotics components store based in Bangladesh — Arduino, ESP32, sensors, drones, robotic arms, 3D printing supplies, with fast nationwide delivery.
+
+VoltBot is an e-commerce storefront serving makers, hobbyists, students and engineers across Bangladesh. Every component is sourced from authorized distributors, backed by engineer support and a 7-day money-back guarantee.
+
+## Pages
+
+- [Home](/): Featured products, categories, and store highlights.
+- [All Products](/products): Full searchable catalog with filters and sort.
+- [Cart](/cart): Review items before checkout.
+- [Checkout](/checkout): Cash on delivery, partial payment, and prepaid options.
+- [Sign in](/auth): Customer sign-in and account creation.
+
+## Optional
+
+- [Sitemap](/sitemap.xml): Machine-readable list of public URLs.

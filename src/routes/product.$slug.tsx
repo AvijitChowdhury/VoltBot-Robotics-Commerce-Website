@@ -108,9 +108,9 @@ function ProductPage() {
 
             <div className="mt-6 flex items-center gap-3">
               <div className="inline-flex items-center rounded-lg border border-border bg-surface">
-                <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-2.5 hover:text-primary"><Minus className="h-4 w-4" /></button>
+                <button aria-label="Decrease quantity" onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-2.5 hover:text-primary"><Minus className="h-4 w-4" /></button>
                 <span className="w-10 text-center text-sm font-semibold">{qty}</span>
-                <button onClick={() => setQty(Math.min(product.stock, qty + 1))} className="px-3 py-2.5 hover:text-primary"><Plus className="h-4 w-4" /></button>
+                <button aria-label="Increase quantity" onClick={() => setQty(Math.min(product.stock, qty + 1))} className="px-3 py-2.5 hover:text-primary"><Plus className="h-4 w-4" /></button>
               </div>
               <button onClick={() => addToCart(false)} disabled={product.stock === 0}
                 className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary hover:text-primary-foreground transition-colors disabled:opacity-50">

@@ -206,7 +206,7 @@ function ReviewForm({ item, onDone }: { item: Reviewable; onDone: () => void }) 
       </div>
       <div className="mt-3 flex gap-1">
         {[1,2,3,4,5].map(n => (
-          <button key={n} onClick={() => setRating(n)} type="button">
+          <button key={n} onClick={() => setRating(n)} type="button" aria-label={`Rate ${n} star${n === 1 ? "" : "s"}`}>
             <Star className={`h-5 w-5 ${n <= rating ? "fill-warning text-warning" : "text-muted-foreground"}`} />
           </button>
         ))}

@@ -52,6 +52,7 @@ function ProductsPage() {
             <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2">
               <Search className="h-4 w-4 text-muted-foreground" />
               <input
+                aria-label="Search products"
                 defaultValue={search.q ?? ""}
                 onKeyDown={(e) => { if (e.key === "Enter") navigate({ search: (p: any) => ({ ...p, q: (e.target as HTMLInputElement).value || undefined, page: 1 }) }); }}
                 placeholder="Search products…"
@@ -59,6 +60,7 @@ function ProductsPage() {
               />
             </div>
             <select
+              aria-label="Sort products"
               value={search.sort}
               onChange={(e) => navigate({ search: (p: any) => ({ ...p, sort: e.target.value as any, page: 1 }) })}
               className="rounded-lg border border-border bg-surface px-3 py-2 text-sm"
