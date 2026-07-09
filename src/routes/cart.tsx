@@ -43,8 +43,6 @@ function CartPage() {
                     <button aria-label="Decrease quantity" onClick={() => setQty(l.product_id, l.quantity - 1)} className="px-2.5 py-2 hover:text-primary"><Minus className="h-3.5 w-3.5" /></button>
                     <span className="w-8 text-center text-sm font-semibold">{l.quantity}</span>
                     <button aria-label="Increase quantity" onClick={() => setQty(l.product_id, l.quantity + 1)} className="px-2.5 py-2 hover:text-primary"><Plus className="h-3.5 w-3.5" /></button>
-                    <span className="w-8 text-center text-sm font-semibold">{l.quantity}</span>
-                    <button onClick={() => setQty(l.product_id, l.quantity + 1)} className="px-2.5 py-2 hover:text-primary"><Plus className="h-3.5 w-3.5" /></button>
                   </div>
                   <div className="w-24 text-right font-display text-lg font-bold">৳{(l.price * l.quantity).toLocaleString()}</div>
                   <button onClick={() => remove(l.product_id)} aria-label="Remove" className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
