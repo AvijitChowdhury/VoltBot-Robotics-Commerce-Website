@@ -5,7 +5,16 @@ import { useCart } from "@/contexts/CartContext";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/cart")({
-  head: () => ({ meta: [{ title: "Cart — VoltBot" }] }),
+  head: () => ({
+    meta: [
+      { title: "Cart — VoltBot" },
+      { name: "description", content: "Review the items in your VoltBot cart before checkout." },
+      { property: "og:title", content: "Cart — VoltBot" },
+      { property: "og:description", content: "Review the items in your VoltBot cart." },
+      { property: "og:url", content: "https://roboticsavijit.lovable.app/cart" },
+    ],
+    links: [{ rel: "canonical", href: "https://roboticsavijit.lovable.app/cart" }],
+  }),
   component: CartPage,
 });
 

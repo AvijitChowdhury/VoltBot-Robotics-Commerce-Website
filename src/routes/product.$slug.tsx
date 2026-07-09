@@ -19,13 +19,54 @@ export const Route = createFileRoute("/product/$slug")({
     if (!d.product) throw notFound();
     return d;
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      { title: `${loaderData?.product?.name ?? "Product"} — VoltBot` },
-      { name: "description", content: loaderData?.product?.description?.slice(0, 160) ?? "VoltBot product" },
-      { property: "og:image", content: loaderData?.product?.image_url ?? "" },
-    ],
-  }),
+  head: ({ loaderData, params }) => {
+    const p = loaderData?.product;
+    const url = `https://roboticsavijit.lovable.app/product/${params.slug}`;
+    const desc = p?.description?.slice(0, 160) ?? "VoltBot product";
+    const title = `${p?.name ?? "Product"} — VoltBot`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
+        ...(p?.image_url ? [
+          { property: "og:image", content: p.image_url },
+          { name: "twitter:image", content: p.image_url },
+        ] : []),
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: p ? [{
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: p.name,
+          image: p.image_url ? [p.image_url] : undefined,
+          description: p.description ?? undefined,
+          sku: p.id,
+          offers: {
+            "@type": "Offer",
+            url,
+            priceCurrency: "BDT",
+            price: Number(p.price),
+            availability: p.stock > 0
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+          },
+          ...(p.rating && p.reviews_count ? {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: p.rating,
+              reviewCount: p.reviews_count,
+            },
+          } : {}),
+        }),
+      }] : [],
+    };
+  },
   notFoundComponent: () => (
     <div className="min-h-screen bg-background"><Header /><div className="p-16 text-center"><h1 className="font-display text-3xl">Product not found</h1><Link to="/products" className="text-primary mt-4 inline-block">Browse all products</Link></div><Footer /></div>
   ),

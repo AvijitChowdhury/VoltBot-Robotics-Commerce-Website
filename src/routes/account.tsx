@@ -9,7 +9,16 @@ import { retryOrderPayment } from "@/lib/payments.functions";
 import { LogOut, Package, User as UserIcon, RefreshCw, Star, Send } from "lucide-react";
 
 export const Route = createFileRoute("/account")({
-  head: () => ({ meta: [{ title: "My Account — VoltBot" }] }),
+  head: () => ({
+    meta: [
+      { title: "My Account — VoltBot" },
+      { name: "description", content: "Manage your VoltBot profile, orders and reviews." },
+      { property: "og:title", content: "My Account — VoltBot" },
+      { property: "og:url", content: "https://roboticsavijit.lovable.app/account" },
+      { name: "robots", content: "noindex" },
+    ],
+    links: [{ rel: "canonical", href: "https://roboticsavijit.lovable.app/account" }],
+  }),
   component: AccountPage,
 });
 

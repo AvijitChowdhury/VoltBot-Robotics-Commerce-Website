@@ -27,7 +27,16 @@ export const Route = createFileRoute("/products")({
   validateSearch: zodValidator(searchSchema),
   loaderDeps: ({ search }) => search,
   loader: ({ context, deps }) => context.queryClient.ensureQueryData(listOpts(deps)),
-  head: () => ({ meta: [{ title: "All Products — VoltBot" }, { name: "description", content: "Browse VoltBot's full catalog of electronics & robotics components." }] }),
+  head: () => ({
+    meta: [
+      { title: "All Products — VoltBot" },
+      { name: "description", content: "Browse VoltBot's full catalog of Arduino, ESP32, sensors, motors, drones, 3D printing supplies and robotics kits." },
+      { property: "og:title", content: "All Products — VoltBot" },
+      { property: "og:description", content: "Browse VoltBot's full catalog of electronics & robotics components." },
+      { property: "og:url", content: "https://roboticsavijit.lovable.app/products" },
+    ],
+    links: [{ rel: "canonical", href: "https://roboticsavijit.lovable.app/products" }],
+  }),
   errorComponent: ({ error }) => <div className="p-8 text-destructive">{error.message}</div>,
   component: ProductsPage,
 });

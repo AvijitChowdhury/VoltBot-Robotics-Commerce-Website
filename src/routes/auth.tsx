@@ -8,7 +8,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Zap } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
-  head: () => ({ meta: [{ title: "Sign in — VoltBot" }] }),
+  head: () => ({
+    meta: [
+      { title: "Sign in — VoltBot" },
+      { name: "description", content: "Sign in or create a VoltBot account to track orders, manage addresses, and check out faster." },
+      { property: "og:title", content: "Sign in — VoltBot" },
+      { property: "og:description", content: "Sign in to your VoltBot account." },
+      { property: "og:url", content: "https://roboticsavijit.lovable.app/auth" },
+    ],
+    links: [{ rel: "canonical", href: "https://roboticsavijit.lovable.app/auth" }],
+  }),
   component: AuthPage,
 });
 
