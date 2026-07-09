@@ -213,6 +213,33 @@ allure generate allure-results -o allure-report --clean
 allure open allure-report
 ```
 
+### Testing architecture
+
+```mermaid
+flowchart TB
+    Dev[Developer / CI] --> PT[pytest runner<br/>tests/e2e/pytest.ini]
+    PT --> PW[pytest-playwright<br/>Chromium headless<br/>1280x1800 viewport]
+    PW --> APP[Dev server<br/>localhost:8080<br/>or E2E_BASE_URL]
+    APP --> LC[(Lovable Cloud<br/>Postgres + Auth)]
+
+    PW --> SIGN[_sign_in helper<br/>E2E_ADMIN_EMAIL / PASSWORD]
+    SIGN --> APP
+
+    PW -->|page.screenshot| SHOTS[tests/e2e/screenshots/*.png]
+    PT -->|allure.attach| AR[allure-results/*.json]
+    SHOTS --> AR
+    AR --> AG[allure generate] --> RPT[allure-report/<br/>Overview • Suites • Graphs<br/>Timeline • Behaviors • Packages]
+
+    subgraph SUITE[12 tests / 100% pass]
+        T1[Home] --- T2[Products] --- T3[Product detail]
+        T4[Cart] --- T5[Checkout] --- T6[Auth]
+        T7[Account guest] --- T8[Admin guest]
+        T9[Account signed-in] --- T10[Admin signed-in]
+        T11[Add-to-cart flow] --- T12[Console health<br/>pageerror listener]
+    end
+    PT --> SUITE
+```
+
 Latest run — **12 passed, 0 failed, 100% success**.
 
 ### Allure report — Overview
