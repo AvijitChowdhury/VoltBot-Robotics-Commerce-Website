@@ -29,7 +29,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           const { data } = await supabaseAdmin
             .from("products")
             .select("slug, updated_at")
-            .eq("status", "published");
+            .eq("is_active", true);
           if (data) {
             for (const p of data) {
               if (p.slug) {
