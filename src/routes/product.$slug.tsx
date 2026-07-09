@@ -19,13 +19,54 @@ export const Route = createFileRoute("/product/$slug")({
     if (!d.product) throw notFound();
     return d;
   },
-  head: ({ loaderData }) => ({
-    meta: [
-      { title: `${loaderData?.product?.name ?? "Product"} — VoltBot` },
-      { name: "description", content: loaderData?.product?.description?.slice(0, 160) ?? "VoltBot product" },
-      { property: "og:image", content: loaderData?.product?.image_url ?? "" },
-    ],
-  }),
+  head: ({ loaderData, params }) => {
+    const p = loaderData?.product;
+    const url = `https://roboticsavijit.lovable.app/product/${params.slug}`;
+    const desc = p?.description?.slice(0, 160) ?? "VoltBot product";
+    const title = `${p?.name ?? "Product"} — VoltBot`;
+    return {
+      meta: [
+        { title },
+        { name: "description", content: desc },
+        { property: "og:title", content: title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
+        ...(p?.image_url ? [
+          { property: "og:image", content: p.image_url },
+          { name: "twitter:image", content: p.image_url },
+        ] : []),
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: p ? [{
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: p.name,
+          image: p.image_url ? [p.image_url] : undefined,
+          description: p.description ?? undefined,
+          sku: p.id,
+          offers: {
+            "@type": "Offer",
+            url,
+            priceCurrency: "BDT",
+            price: Number(p.price),
+            availability: p.stock > 0
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+          },
+          ...(p.rating && p.reviews_count ? {
+            aggregateRating: {
+              "@type": "AggregateRating",
+              ratingValue: p.rating,
+              reviewCount: p.reviews_count,
+            },
+          } : {}),
+        }),
+      }] : [],
+    };
+  },
   notFoundComponent: () => (
     <div className="min-h-screen bg-background"><Header /><div className="p-16 text-center"><h1 className="font-display text-3xl">Product not found</h1><Link to="/products" className="text-primary mt-4 inline-block">Browse all products</Link></div><Footer /></div>
   ),
@@ -108,9 +149,9 @@ function ProductPage() {
 
             <div className="mt-6 flex items-center gap-3">
               <div className="inline-flex items-center rounded-lg border border-border bg-surface">
-                <button onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-2.5 hover:text-primary"><Minus className="h-4 w-4" /></button>
+                <button aria-label="Decrease quantity" onClick={() => setQty(Math.max(1, qty - 1))} className="px-3 py-2.5 hover:text-primary"><Minus className="h-4 w-4" /></button>
                 <span className="w-10 text-center text-sm font-semibold">{qty}</span>
-                <button onClick={() => setQty(Math.min(product.stock, qty + 1))} className="px-3 py-2.5 hover:text-primary"><Plus className="h-4 w-4" /></button>
+                <button aria-label="Increase quantity" onClick={() => setQty(Math.min(product.stock, qty + 1))} className="px-3 py-2.5 hover:text-primary"><Plus className="h-4 w-4" /></button>
               </div>
               <button onClick={() => addToCart(false)} disabled={product.stock === 0}
                 className="inline-flex items-center gap-2 rounded-lg border border-primary/40 bg-primary/10 px-5 py-2.5 text-sm font-semibold text-primary hover:bg-primary hover:text-primary-foreground transition-colors disabled:opacity-50">

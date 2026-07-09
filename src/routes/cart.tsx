@@ -5,7 +5,16 @@ import { useCart } from "@/contexts/CartContext";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight } from "lucide-react";
 
 export const Route = createFileRoute("/cart")({
-  head: () => ({ meta: [{ title: "Cart — VoltBot" }] }),
+  head: () => ({
+    meta: [
+      { title: "Cart — VoltBot" },
+      { name: "description", content: "Review the items in your VoltBot cart before checkout." },
+      { property: "og:title", content: "Cart — VoltBot" },
+      { property: "og:description", content: "Review the items in your VoltBot cart." },
+      { property: "og:url", content: "https://roboticsavijit.lovable.app/cart" },
+    ],
+    links: [{ rel: "canonical", href: "https://roboticsavijit.lovable.app/cart" }],
+  }),
   component: CartPage,
 });
 
@@ -40,9 +49,9 @@ function CartPage() {
                     <div className="mt-1 font-display text-lg font-bold text-primary">৳{l.price.toLocaleString()}</div>
                   </div>
                   <div className="inline-flex items-center rounded-lg border border-border bg-surface">
-                    <button onClick={() => setQty(l.product_id, l.quantity - 1)} className="px-2.5 py-2 hover:text-primary"><Minus className="h-3.5 w-3.5" /></button>
+                    <button aria-label="Decrease quantity" onClick={() => setQty(l.product_id, l.quantity - 1)} className="px-2.5 py-2 hover:text-primary"><Minus className="h-3.5 w-3.5" /></button>
                     <span className="w-8 text-center text-sm font-semibold">{l.quantity}</span>
-                    <button onClick={() => setQty(l.product_id, l.quantity + 1)} className="px-2.5 py-2 hover:text-primary"><Plus className="h-3.5 w-3.5" /></button>
+                    <button aria-label="Increase quantity" onClick={() => setQty(l.product_id, l.quantity + 1)} className="px-2.5 py-2 hover:text-primary"><Plus className="h-3.5 w-3.5" /></button>
                   </div>
                   <div className="w-24 text-right font-display text-lg font-bold">৳{(l.price * l.quantity).toLocaleString()}</div>
                   <button onClick={() => remove(l.product_id)} aria-label="Remove" className="rounded-md p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><Trash2 className="h-4 w-4" /></button>

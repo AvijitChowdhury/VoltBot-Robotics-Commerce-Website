@@ -25,6 +25,48 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "VoltBot — Electronics & Robotics Store in Bangladesh" },
       { name: "description", content: "Shop Arduino, ESP32, sensors, drones, robotic arms, 3D printers and more. Fast delivery, genuine parts, 7-day money-back." },
+      { property: "og:title", content: "VoltBot — Electronics & Robotics Store in Bangladesh" },
+      { property: "og:description", content: "Shop Arduino, ESP32, sensors, drones, robotic arms, 3D printers and more. Fast delivery across Bangladesh." },
+      { property: "og:url", content: "https://roboticsavijit.lovable.app/" },
+    ],
+    links: [{ rel: "canonical", href: "https://roboticsavijit.lovable.app/" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "Organization",
+              name: "VoltBot",
+              url: "https://roboticsavijit.lovable.app/",
+              logo: "https://roboticsavijit.lovable.app/favicon.ico",
+            },
+            {
+              "@type": "WebSite",
+              name: "VoltBot",
+              url: "https://roboticsavijit.lovable.app/",
+              potentialAction: {
+                "@type": "SearchAction",
+                target: "https://roboticsavijit.lovable.app/products?q={search_term_string}",
+                "query-input": "required name=search_term_string",
+              },
+            },
+            {
+              "@type": "LocalBusiness",
+              name: "VoltBot",
+              url: "https://roboticsavijit.lovable.app/",
+              address: {
+                "@type": "PostalAddress",
+                streetAddress: "Dhanmondi",
+                addressLocality: "Dhaka",
+                addressCountry: "BD",
+              },
+              areaServed: "Bangladesh",
+            },
+          ],
+        }),
+      },
     ],
   }),
   loader: ({ context }) => context.queryClient.ensureQueryData(homeQuery),

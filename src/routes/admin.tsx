@@ -24,7 +24,14 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin")({
-  head: () => ({ meta: [{ title: "Admin — VoltBot" }] }),
+  head: () => ({
+    meta: [
+      { title: "Admin — VoltBot" },
+      { name: "robots", content: "noindex, nofollow" },
+      { property: "og:url", content: "https://roboticsavijit.lovable.app/admin" },
+    ],
+    links: [{ rel: "canonical", href: "https://roboticsavijit.lovable.app/admin" }],
+  }),
   component: AdminPage,
 });
 

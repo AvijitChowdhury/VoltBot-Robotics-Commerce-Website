@@ -12,7 +12,17 @@ import { useServerFn } from "@tanstack/react-start";
 import { CheckCircle2, Loader2, Tag } from "lucide-react";
 
 export const Route = createFileRoute("/checkout")({
-  head: () => ({ meta: [{ title: "Checkout — VoltBot" }] }),
+  head: () => ({
+    meta: [
+      { title: "Checkout — VoltBot" },
+      { name: "description", content: "Complete your VoltBot order with cash on delivery, partial payment, or prepaid options." },
+      { property: "og:title", content: "Checkout — VoltBot" },
+      { property: "og:description", content: "Complete your VoltBot order securely." },
+      { property: "og:url", content: "https://roboticsavijit.lovable.app/checkout" },
+      { name: "robots", content: "noindex" },
+    ],
+    links: [{ rel: "canonical", href: "https://roboticsavijit.lovable.app/checkout" }],
+  }),
   component: CheckoutPage,
 });
 
