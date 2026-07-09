@@ -157,6 +157,36 @@ Captured by the Playwright suite in [`tests/e2e/`](tests/e2e/) at 1280 × 1800 C
               (courier)                  (payments)
 ```
 
+### System architecture (rendered)
+
+```mermaid
+flowchart LR
+    U[Browser<br/>React 19 hydrate]
+    subgraph CF[Cloudflare Worker]
+        SSR[TanStack Start SSR]
+        RPC[createServerFn RPC<br/>requireSupabaseAuth]
+        API[/api/public/*<br/>webhooks • cron/]
+    end
+    subgraph LC[Lovable Cloud]
+        PG[(Postgres<br/>RLS + GRANTs)]
+        AUTH[Auth]
+        STO[Storage]
+    end
+    SF[Steadfast API<br/>courier]
+    UP[UddoktaPay<br/>payments]
+
+    U <--> SSR
+    U <--> RPC
+    SSR --> RPC
+    RPC --> PG
+    RPC --> AUTH
+    RPC --> STO
+    API --> PG
+    RPC --> SF
+    UP -->|signed webhook| API
+    SF -->|status sync| API
+```
+
 Key rules the codebase enforces:
 
 - Every `public.*` table has explicit `GRANT`s + RLS policies.
@@ -181,6 +211,33 @@ export E2E_ADMIN_PASSWORD=your-password
 python -m pytest tests/e2e --alluredir=allure-results
 allure generate allure-results -o allure-report --clean
 allure open allure-report
+```
+
+### Testing architecture
+
+```mermaid
+flowchart TB
+    Dev[Developer / CI] --> PT[pytest runner<br/>tests/e2e/pytest.ini]
+    PT --> PW[pytest-playwright<br/>Chromium headless<br/>1280x1800 viewport]
+    PW --> APP[Dev server<br/>localhost:8080<br/>or E2E_BASE_URL]
+    APP --> LC[(Lovable Cloud<br/>Postgres + Auth)]
+
+    PW --> SIGN[_sign_in helper<br/>E2E_ADMIN_EMAIL / PASSWORD]
+    SIGN --> APP
+
+    PW -->|page.screenshot| SHOTS[tests/e2e/screenshots/*.png]
+    PT -->|allure.attach| AR[allure-results/*.json]
+    SHOTS --> AR
+    AR --> AG[allure generate] --> RPT[allure-report/<br/>Overview • Suites • Graphs<br/>Timeline • Behaviors • Packages]
+
+    subgraph SUITE[12 tests / 100% pass]
+        T1[Home] --- T2[Products] --- T3[Product detail]
+        T4[Cart] --- T5[Checkout] --- T6[Auth]
+        T7[Account guest] --- T8[Admin guest]
+        T9[Account signed-in] --- T10[Admin signed-in]
+        T11[Add-to-cart flow] --- T12[Console health<br/>pageerror listener]
+    end
+    PT --> SUITE
 ```
 
 Latest run — **12 passed, 0 failed, 100% success**.
